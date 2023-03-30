@@ -88,7 +88,7 @@ colorless_playing = False # True = FORCE DETECTION OF COLORLESS TEAM !
 people = np.empty((0,5))
 color = (0,0,255)
 
-cap = cv.VideoCapture(r'.\samples\randalls squad sample2.mp4') # <--- set video capture
+cap = cv.VideoCapture(r'C:\Users\Jakub\Programming\Python\openCV\samples\randalls squad sample2.mp4') # <--- set video capture
 
 team_unknown = Team('Unknown', np.array([0,0,0]), np.array([0,0,0]), (0,255,0)) #used for people not matching description of any other team
 all_teams = [ # \/ add/change teams  \/ --------------------------------------------------------
