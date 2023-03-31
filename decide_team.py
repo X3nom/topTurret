@@ -7,7 +7,8 @@ class Id_team(): #associate id with team
     def __init__(self,Id,team=None,all_teams=[],countdown=30,ttit=30) -> None:
         self.Id = Id
         self.team = team
-        self.teams = []
+        self.teams = all_teams
+        self.teams_values = [ 0 for i in all_teams]
         self.all_teams = all_teams
         self.countdown = countdown # number of frames in row where id is not found, object gets deleted after reaching 0
         self.max_countdown = countdown
@@ -22,16 +23,16 @@ class Id_team(): #associate id with team
         if team.name == 'Unknown':
             if colorless_playing:
                 if not self.switched_to_colorless:
-                    self.teams.append(team)
+                    self.teams_values[self.teams.index(team)] += 1
                 else:
-                    self.teams.append(self.all_teams[0])
-                self.team = max(set(self.teams), key = self.teams.count)
+                    self.teams_values[1] += 1
+                self.team = self.teams[self.teams_values.index(max(self.teams_values))]
         elif self.team.name == 'Unknown' and not colorless_playing:
             self.team = team
-            self.teams.append(team)
+            self.teams_values[self.teams.index(team)] += 1
         else:
-            self.teams.append(team)
-            self.team = max(set(self.teams), key = self.teams.count)
+            self.teams_values[self.teams.index(team)] += 1
+            self.team = self.teams[self.teams_values.index(max(self.teams_values))]
         self.countdown = self.max_countdown
 
 class Ids():
@@ -88,10 +89,11 @@ colorless_playing = False # True = FORCE DETECTION OF COLORLESS TEAM !
 people = np.empty((0,5))
 color = (0,0,255)
 
-cap = cv.VideoCapture(r'C:\Users\Jakub\Programming\Python\openCV\samples\randalls squad sample2.mp4') # <--- set video capture
+cap = cv.VideoCapture(r'C:\Users\Jakub\Programming\Python\openCV\samples\randalls squad sample.mp4') # <--- set video capture
 
-team_unknown = Team('Unknown', np.array([0,0,0]), np.array([0,0,0]), (0,255,0)) #used for people not matching description of any other team
 all_teams = [ # \/ add/change teams  \/ --------------------------------------------------------
+    Team('Unknown', np.array([0,0,0]), np.array([255,255,255]), (0,255,0)), #used for people not matching description of any other team, !-DO NOT CHANGE OR REMOVE-!
+
     Team('colorless', np.array([0,0,0]), np.array([255,255,255]), (255,0,255)),#special team with invalid color range, only if team with no color is playing
 
     Team('blue', np.array([123,255,191]), np.array([106,174,52]), (255,0,0)),
@@ -101,6 +103,7 @@ all_teams = [ # \/ add/change teams  \/ ----------------------------------------
 enemy_teams = ['red','blue'] # EDIT ENEMY TEAMS !
 
 teams = []
+teams.append(all_teams[0])
 for et in enemy_teams:
     for t in all_teams:
         if t.name == et:
@@ -151,7 +154,7 @@ while True: # Main loop
             if max(mask_sums) > 15:
                 best_team_match = teams[mask_sums.index(max(mask_sums))]
             else:
-                best_team_match = team_unknown
+                best_team_match = all_teams[0]
 
             person_team = ids.check_id(Id,best_team_match)
             color = person_team.display_color
