@@ -100,15 +100,16 @@ all_teams = [ # \/ add/change teams  \/ ----------------------------------------
     Team('red', np.array([179,255,255]), np.array([162,169,106]), (0,0,255)),
     Team('yellow', np.array([29,255,255]), np.array([18,165,89]), (0,255,255))
 ]
-enemy_teams = ['red','blue'] # EDIT ENEMY TEAMS !
+playing_teams = ['red','blue'] # EDIT ALL PLAYING TEAMS !
+enemy_teams = ['blue'] # EDIT ENEMY TEAMS !
 
 teams = []
 teams.append(all_teams[0])
-for et in enemy_teams:
+for et in playing_teams:
     for t in all_teams:
         if t.name == et:
             teams.append(t)
-if 'colorless' in enemy_teams:
+if 'colorless' in playing_teams:
     colorless_playing = True
 ids = Ids(teams,colorless_playing)
 
