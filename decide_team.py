@@ -79,7 +79,21 @@ class Team():
         self.upper_color = upper_color
         self.lower_color = lower_color
         self.display_color = display_color
-        
+
+def find_closest_enemy(enemies,screencenter):
+    if len(enemies) > 0:
+        centers = []
+        for enemy in enemies:
+            x1,y1,x2,y2,Id = enemy
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            center = [round(x1+abs(x1-x2)/2),round(y1+abs(y1-y2)/2)]
+            centers.append(center)
+        closest_center = centers[0]
+        closest_center_dist = np.sqrt(abs(closest_center[0]-screencenter[0])**2+abs(closest_center[1]-screencenter[1])**2)
+        for center in centers:
+            if np.sqrt(abs(center[0]-screencenter[0])**2+abs(center[1]-screencenter[1])**2) < closest_center_dist:
+                closest_center = center
+        return closest_center, enemies[centers.index(closest_center)]
 
 model = YOLO('.\Yolo weights\yolov8l.pt') # load up neural network model
 
@@ -90,6 +104,11 @@ people = np.empty((0,5))
 color = (0,0,255)
 
 cap = cv.VideoCapture(r'C:\Users\Jakub\Programming\Python\openCV\samples\randalls squad sample.mp4') # <--- set video capture
+
+width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH ))
+height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT ))
+screencenter = [round(width/2),round(height/2)]
+
 
 all_teams = [ # \/ add/change teams  \/ --------------------------------------------------------
     Team('Unknown', np.array([0,0,0]), np.array([255,255,255]), (0,255,0)), #used for people not matching description of any other team, !-DO NOT CHANGE OR REMOVE-!
@@ -137,7 +156,7 @@ while True: # Main loop
                 people = np.vstack((people,person_arr))
 
     tracker_return = tracker.update(people) #sends data about detections to sort, sort tryes to associate people from previous frames with new detections gives them IDs
-
+    enemies = np.empty((0,5))
     for res in tracker_return:
         x1,y1,x2,y2,Id = res
         x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
@@ -159,12 +178,23 @@ while True: # Main loop
 
             person_team = ids.check_id(Id,best_team_match)
             color = person_team.display_color
+
+            if person_team.name in enemy_teams:
+                enemies = np.vstack((enemies,res))
             
             # graphics for visual validation of data
             cv.rectangle(frame_out,(x1,y1),(x2,y2),color,2)
             cv.drawMarker(frame_out,center,color,cv.MARKER_CROSS,thickness=2)
             cv.putText(frame_out,person_team.name,np.array([x1+10,y1-10]),cv.FONT_HERSHEY_SIMPLEX,1,color,2,cv.LINE_AA)
             cv.putText(frame_out,str(int(Id)),np.array([x1,y2-10]),cv.FONT_HERSHEY_SIMPLEX,1,color,2,cv.LINE_AA)
+
+            cv.drawMarker(frame_out,screencenter,(255,0,255),cv.MARKER_CROSS,50,2)
+    if len(enemies) > 0:
+        closest_center, closest_enemy = find_closest_enemy(enemies,screencenter)
+
+        cv.line(frame_out,closest_center,screencenter,(255,0,255),2,cv.LINE_AA)
+        cv.drawMarker(frame_out,closest_center,ids.get_id_from_ids(closest_enemy[4]).team.display_color,cv.MARKER_SQUARE,thickness=2)
+        
 
     ids.update()
     cv.imshow("test",frame_out)
