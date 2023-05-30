@@ -3,7 +3,7 @@ import numpy as np
 from ultralytics import YOLO
 from packages import sort
 from threading import Thread
-import time
+import time, tkinter
 
 class WebcamStream : #credits to https://github.com/vasugupta9 (https://github.com/vasugupta9/DeepLearningProjects/blob/main/MultiThreadedVideoProcessing/video_processing_parallel.py)
     def __init__(self, stream_id=0): 
@@ -174,6 +174,7 @@ all_teams = [ # \/ add/change teams  \/ ----------------------------------------
     Team('red', np.array([179,255,255]), np.array([162,169,106]), (0,0,255)),
     Team('yellow', np.array([29,255,255]), np.array([18,165,89]), (0,255,255))
 ]
+
 playing_teams = ['red','blue'] # EDIT ALL PLAYING TEAMS !
 enemy_teams = ['blue'] # EDIT ENEMY TEAMS !
 
@@ -191,11 +192,10 @@ if not stream.vcap.isOpened():
     print("Cannot open camera")
     exit()
 last_frame_time = time.time()
-while True: # Main loop
-    fps = (time.time()-last_frame_time)*1000
+while True: # Main loop !!!!!!
     last_frame_time = time.time()
 
-    frame = stream.read()
+    frame = stream.read() #get frame from camera
     
     detection = model(frame,stream=True) #detect objects in frame trough neural network
 
@@ -251,7 +251,6 @@ while True: # Main loop
 
         cv.line(frame_out,closest_center,screencenter,(255,0,255),2,cv.LINE_AA)
         cv.drawMarker(frame_out,closest_center,ids.get_id_from_ids(closest_enemy[4]).team.display_color,cv.MARKER_SQUARE,thickness=2)
-    cv.putText(frame_out,''.join('fps',str(fps)),np.array([0,50]),cv.FONT_HERSHEY_SIMPLEX,1,(0,255,255),2,cv.LINE_AA)
 
     ids.update()
     cv.imshow("test",frame_out)
