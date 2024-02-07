@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 from ultralytics import YOLO
-from packages import sort
+from packages import sort, controllerLanServer
 from threading import Thread
 import time, tkinter
 

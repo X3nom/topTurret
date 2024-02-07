@@ -4,30 +4,57 @@ import math
 import socket
 import threading
 
-class servo():
+class Controller():
+  def __init__(self,xServo,yServo,trigServo):
+    self.xServo = Servo(xServo,'360')
+    self.yServo = Servo(yServo,'180')
+    self.trigServo = Servo(trigServo,'180')
+
+  def computeAngle(self,coor1,coor2):
+    angle = int
+    return angle
+  
+  def shoot(self):
+    self.trigServo.
+
+
+class Servo():
   def __init__(self,servoPIN,servoType='180'):
+    self.valRange = [2,12]
     self.type = servoType
     GPIO.setup(servoPIN, GPIO.OUT)
     self.pin = GPIO.PWM(servoPIN, 50)
 
     if self.type == '180': 
-      self.pin.start(2)
+      self.curRot = 2
     else:
-      self.pin.start(0)
+      self.curRot = 0
+
+    self.pin.start(self.curRot)
 
   def stop(self):
     self.pin.stop()
 
-  def changeCycle(self,value):
-    self.pin.ChangeDutyCycle(value)
+  def changeCycle(self,value,add=False):
+    if add:
+      tempRot = self.curRot + value
+      if tempRot < self.valRange[0]:
+        tempRot == self.valRange[0]
+      elif tempRot > self.valRange[1]:
+        tempRot == self.valRange[1]
+      self.curRot = tempRot
+    else:
+      self.curRot = value
+    self.pin.ChangeDutyCycle(self.curRot)
 
-  def rotateRad(self,radians):
+  def rotateRad(self,radians,absolute=True):
     if self.type == '180':
-      signal = 
+      signal = radians*10+2
 
-  def rotateDeg(self,degrees):
+  def rotateDeg(self,degrees,absolute=True):
     if self.type == '180':
-      signal = degrees-2
+      signal = degrees/36*2+2
+      self.changeCycle()
 
 if __name__ == '__main__':
   SERVO1 = 18
