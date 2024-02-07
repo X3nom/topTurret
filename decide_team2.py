@@ -141,7 +141,7 @@ if 'colorless' in playing_teams:
     colorless_playing = True
 ids = Ids(teams,colorless_playing)
 
-if not cap.isOpen():
+if cap.mode == 'pc' and not cap.isOpen():
     print("Cannot open camera")
     exit()
 last_frame_time = time.time()
