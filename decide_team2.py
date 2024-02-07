@@ -112,11 +112,7 @@ capture = 0#r"C:/Users/Jakub/Programming/Python/openCV/samples/randalls squad sa
 
 cap = Cam.vCap(capture)
 
-if cap.mode == "pc":
-    width = int(cap.vcap.vcap.get(cv.CAP_PROP_FRAME_WIDTH ))
-    height = int(cap.vcap.vcap.get(cv.CAP_PROP_FRAME_HEIGHT ))
-    screencenter = [round(width/2),round(height/2)]
-
+screencenter = [round(cap.size[0]/2),round(cap.size[1]/2)]
 
 all_teams = [ # add/change teams  --------------------------------------------------------
     Team('Unknown', np.array([0,0,0]), np.array([255,255,255]), (0,255,0)), #used for people not matching description of any other team, !-DO NOT CHANGE OR REMOVE-!

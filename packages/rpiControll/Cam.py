@@ -3,21 +3,24 @@ import cv2 as cv
 
 class vCap():
     def __init__(self,source):
+        self.size = [1280,720]
         self.mode = "pc"
         if source == 0:
             try: from picamera2 import Picamera2
             except: self.mode = "pc"
             else: self.mode = "rpi"
-        if self.mode == "rpi":
+
+        if self.mode == "rpi": # if the code is running on raspberry pi
             self.vcap = Picamera2()
-            self.vcap.preview_configuration.main.size = (1280,720)
+            self.vcap.preview_configuration.main.size = self.size
             self.vcap.preview_configuration.main.format = "RGB888"
             self.vcap.preview_configuration.align()
             self.vcap.configure("preview")
             self.vcap.start()
-        else:
+        else: # the code is running on machine other than raspberry
             self.vcap = WebcamStream(source)
             self.vcap.start()
+            self.size = [ int(self.vcap.vcap.get(cv.CAP_PROP_FRAME_WIDTH )),int(self.vcap.vcap.get(cv.CAP_PROP_FRAME_HEIGHT )) ]
 
     def read(self):
         if self.mode == "rpi":
@@ -28,6 +31,7 @@ class vCap():
         if self.mode == "rpi": pass
         else:
             return self.vcap.vcap.isOpened()
+
 
 class WebcamStream : #credits to https://github.com/vasugupta9 (https://github.com/vasugupta9/DeepLearningProjects/blob/main/MultiThreadedVideoProcessing/video_processing_parallel.py)
     def __init__(self, stream_id=0): 
