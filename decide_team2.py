@@ -100,7 +100,7 @@ def find_closest_enemy(enemies,screencenter):
                 closest_center = center
         return closest_center, enemies[centers.index(closest_center)]
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-model = YOLO('.*Yolo_weights*yolov8n.pt') # load up neural network model
+model = YOLO('./Yolo_weights*yolov8n.pt') # load up neural network model
 
 tracker = sort.Sort(30,1)
 

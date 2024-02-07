@@ -1,3 +1,4 @@
 ultralytics
 scikit-image
 filterpy
+picamera2
