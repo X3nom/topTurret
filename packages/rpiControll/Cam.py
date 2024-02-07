@@ -10,6 +10,10 @@ class vCap():
             else: self.mode = "rpi"
         if self.mode == "rpi":
             self.vcap = Picamera2()
+            self.vcap.preview_configuration.main.size = (1280,720)
+            self.vcap.preview_configuration.main.format = "RGB888"
+            self.vcap.preview_configuration.align()
+            self.vcap.configure("preview")
             self.vcap.start()
         else:
             self.vcap = WebcamStream(source)
