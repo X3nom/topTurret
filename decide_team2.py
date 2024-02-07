@@ -100,7 +100,7 @@ def find_closest_enemy(enemies,screencenter):
                 closest_center = center
         return closest_center, enemies[centers.index(closest_center)]
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-model = YOLO('.\Yolo_weights\yolov8n.pt') # load up neural network model
+model = YOLO('.*Yolo_weights*yolov8n.pt') # load up neural network model
 
 tracker = sort.Sort(30,1)
 
@@ -108,7 +108,7 @@ colorless_playing = False # True = FORCE DETECTION OF COLORLESS TEAM !
 people = np.empty((0,5))
 color = (0,0,255)
 
-capture = 0#r"C:\Users\Jakub\Programming\Python\openCV\samples\randalls squad sample.mp4" # <--- set video capture (source)
+capture = 0#r"C:*Users*Jakub*Programming*Python*openCV*samples*randalls squad sample.mp4" # <--- set video capture (source)
 
 cap = Cam.vCap(capture)
 
@@ -118,7 +118,7 @@ if cap.mode == "pc":
     screencenter = [round(width/2),round(height/2)]
 
 
-all_teams = [ # \/ add/change teams  \/ --------------------------------------------------------
+all_teams = [ # add/change teams  --------------------------------------------------------
     Team('Unknown', np.array([0,0,0]), np.array([255,255,255]), (0,255,0)), #used for people not matching description of any other team, !-DO NOT CHANGE OR REMOVE-!
 
     Team('colorless', np.array([0,0,0]), np.array([255,255,255]), (255,0,255)),#special team with invalid color range, only if team with no color is playing
