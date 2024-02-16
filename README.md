@@ -1,6 +1,7 @@
 # TopTurret
 Záměr projektu je vytvořit plně autonomní airsoft sentry-turret *(otočná věž s namontovanou airsoftovou replikou zbraně schopná sama bránit perimetr)*. Turreta by měla být schopná detekce lidí a následného rozhodování, zda se jedná o přátelský/nepřátelský team *(zda střílet)*.
 
+# technologie
 ## hardware
 - Raspberry pi 5
 - rpi camera module v3
@@ -40,3 +41,10 @@ Dostává od trackeru "movement vector" - vektor udávající požadovaný úhel
 ## Tracker
 "Primární část", obsahuje Main loop, okolo kterého je zbytek programu postaven. Při každém průchodu main loopu je zachycen snímek z kamery (cameraControll).
 ### Person detection
+Pomocí YOLOv8 object recognition modelu najde tracker ve snímku všechny lidi (vrátí oblast px kde se člověk nachází).
+### Sort
+Stará se o indexování lidí a pamatování si indexů ze snímku na snímek. 
+### team detection/evaluation
+
+
+# milestones
