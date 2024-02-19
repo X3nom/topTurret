@@ -43,8 +43,7 @@ Dostává od trackeru "movement vector" - vektor udávající požadovaný úhel
 ### Person detection
 Pomocí YOLOv8 object recognition modelu najde tracker ve snímku všechny lidi (vrátí oblast px kde se člověk nachází).
 ### Sort
-Stará se o indexování lidí a pamatování si indexů ze snímku na snímek. 
+Stará se o indexování lidí a pamatování si indexů ze snímku na snímek. Záznamy o detekovaných lidech, kteří nebyli dlouho znovy detekováni jsou po určité době mazány.
 ### team detection/evaluation
-
-
+Tracker rozhoduje teamy na základě barevných pásek na ruce. Pokud nelze team rozlišit, detekovaný člověk je označen jako `unknown`. Detekované teamy se připisují pod index detekovaného člověka a průměrují se. (př.: pokud je člověk s červenou páskou na pár snímcích špatně detekován jako jiný team, je pořád indexovaný jako červený.)
 # milestones
