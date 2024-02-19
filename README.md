@@ -47,3 +47,9 @@ Stará se o indexování lidí a pamatování si indexů ze snímku na snímek. 
 ### team detection/evaluation
 Tracker rozhoduje teamy na základě barevných pásek na ruce. Pokud nelze team rozlišit, detekovaný člověk je označen jako `unknown`. Detekované teamy se připisují pod index detekovaného člověka a průměrují se. (př.: pokud je člověk s červenou páskou na pár snímcích špatně detekován jako jiný team, je pořád indexovaný jako červený.)
 # milestones
+- [ ] přepočet px -> rad
+- [ ] implementace 360⁰ servo ovládání
+- [ ] napájení
+    - [ ] provizorní ze zdi
+    - [ ] baterie
+- [ ] prototyp věžě (pohyblivá na x,y + trigger servo)
