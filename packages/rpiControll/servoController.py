@@ -5,7 +5,7 @@ import socket
 import threading
 
 class Controller():
-  def __init__(self,xServo_pin,yServo_pin,trigServo_pin):
+  def __init__(self,imShape,xServo_pin,yServo_pin,trigServo_pin):
     try: import RPi.GPIO as GPIO
     except: 
       self.mode = 'pc'
@@ -14,6 +14,7 @@ class Controller():
 
     self.FOV = [41,66]
     self.pxDeg = []
+
 
     self.xServo = Servo(xServo_pin,'360')
     self.yServo = Servo(yServo_pin,'180')
