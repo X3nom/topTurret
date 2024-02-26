@@ -1,12 +1,62 @@
 import cv2 as cv
 import numpy as np
 from ultralytics import YOLO
+from packages import sort, controllerLanServer
 from threading import Thread
 import time
 import platform
 from packages import sort
 from packages.rpiControll import Cam
 
+class WebcamStream : #credits to https://github.com/vasugupta9 (https://github.com/vasugupta9/DeepLearningProjects/blob/main/MultiThreadedVideoProcessing/video_processing_parallel.py)
+    def __init__(self, stream_id=0): 
+        self.stream_id = stream_id   # default is 0 for primary camera 
+        
+        # opening video capture stream 
+        self.vcap      = cv.VideoCapture(self.stream_id)
+        if self.vcap.isOpened() is False :
+            print("[Exiting]: Error accessing webcam stream.")
+            exit(0)
+        fps_input_stream = int(self.vcap.get(5))
+        print("FPS of webcam hardware/input stream: {}".format(fps_input_stream))
+            
+        # reading a single frame from vcap stream for initializing 
+        self.grabbed , self.frame = self.vcap.read()
+        if self.grabbed is False :
+            print('[Exiting] No more frames to read')
+            exit(0)
+
+        # self.stopped is set to False when frames are being read from self.vcap stream 
+        self.stopped = True 
+
+        # reference to the thread for reading next available frame from input stream 
+        self.t = Thread(target=self.update, args=())
+        self.t.daemon = True # daemon threads keep running in the background while the program is executing 
+        
+    # method for starting the thread for grabbing next available frame in input stream 
+    def start(self):
+        self.stopped = False
+        self.t.start() 
+
+    # method for reading next frame 
+    def update(self):
+        while True :
+            if self.stopped is True :
+                break
+            self.grabbed , self.frame = self.vcap.read()
+            if self.grabbed is False :
+                print('[Exiting] No more frames to read')
+                self.stopped = True
+                break 
+        self.vcap.release()
+
+    # method for returning latest read frame 
+    def read(self):
+        return self.frame
+
+    # method called to stop reading frames 
+    def stop(self):
+        self.stopped = True 
 
 class Id_team(): #associate id with team
     def __init__(self,Id,team=None,all_teams=[],countdown=30,ttit=30) -> None:
@@ -100,7 +150,7 @@ def find_closest_enemy(enemies,screencenter):
                 closest_center = center
         return closest_center, enemies[centers.index(closest_center)]
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-model = YOLO('./Yolo_weights/yolov8n.pt') # load up neural network model
+model = YOLO('.\Yolo_weights\yolov8n.pt') # load up neural network model
 
 tracker = sort.Sort(30,1)
 
@@ -108,13 +158,17 @@ colorless_playing = False # True = FORCE DETECTION OF COLORLESS TEAM !
 people = np.empty((0,5))
 color = (0,0,255)
 
-capture = 0#r"C:/Users/Jakub/Programming/Python/openCV/samples/randalls squad sample.mp4" # <--- set video capture (source)
+capture = 0#r"C:\Users\Jakub\Programming\Python\openCV\samples\randalls squad sample.mp4" # <--- set video capture (source)
 
-cap = Cam.vCap(capture)
+stream = WebcamStream(capture)
+stream.start()
 
-screencenter = [round(cap.size[0]/2),round(cap.size[1]/2)]
+width = int(stream.vcap.get(cv.CAP_PROP_FRAME_WIDTH ))
+height = int(stream.vcap.get(cv.CAP_PROP_FRAME_HEIGHT ))
+screencenter = [round(width/2),round(height/2)]
 
-all_teams = [ # add/change teams  --------------------------------------------------------
+
+all_teams = [ # \/ add/change teams  \/ --------------------------------------------------------
     Team('Unknown', np.array([0,0,0]), np.array([255,255,255]), (0,255,0)), #used for people not matching description of any other team, !-DO NOT CHANGE OR REMOVE-!
 
     Team('colorless', np.array([0,0,0]), np.array([255,255,255]), (255,0,255)),#special team with invalid color range, only if team with no color is playing
@@ -137,14 +191,14 @@ if 'colorless' in playing_teams:
     colorless_playing = True
 ids = Ids(teams,colorless_playing)
 
-if cap.mode == 'pc' and not cap.isOpen():
+if not stream.vcap.isOpened():
     print("Cannot open camera")
     exit()
 last_frame_time = time.time()
 while True: # Main loop !!!!!!
     last_frame_time = time.time()
 
-    frame = cap.read() #get frame from camera
+    frame = stream.read() #get frame from camera
     
     detection = model(frame,stream=True) #detect objects in frame trough neural network
 

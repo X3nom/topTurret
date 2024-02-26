@@ -1,21 +1,30 @@
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 import time
 import math
 import socket
 import threading
 
 class Controller():
-  def __init__(self,xServo,yServo,trigServo):
-    self.xServo = Servo(xServo,'360')
-    self.yServo = Servo(yServo,'180')
-    self.trigServo = Servo(trigServo,'180')
+  def __init__(self,xServo_pin,yServo_pin,trigServo_pin):
+    try: import RPi.GPIO as GPIO
+    except: 
+      self.mode = 'pc'
+      return
+    else: self.mode = 'rpi'
+
+    self.FOV = [41,66]
+    self.pxDeg = []
+
+    self.xServo = Servo(xServo_pin,'360')
+    self.yServo = Servo(yServo_pin,'180')
+    self.trigServo = Servo(trigServo_pin,'180')
 
   def computeAngle(self,coor1,coor2):
     angle = int
     return angle
   
   def shoot(self):
-    self.trigServo.
+    pass
 
 
 class Servo():
