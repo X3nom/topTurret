@@ -3,6 +3,7 @@ import time
 import math
 import socket
 import threading
+import queue
 
 class Controller():
   def __init__(self,imShape,xServo_pin,yServo_pin,trigServo_pin):
@@ -16,22 +17,31 @@ class Controller():
     self.pxDeg = []
 
 
-    self.xServo = Servo(xServo_pin,'360')
-    self.yServo = Servo(yServo_pin,'180')
-    self.trigServo = Servo(trigServo_pin,'180')
+    self.xServo = servo360(xServo_pin,'360')
+    self.yServo = servo180(yServo_pin,'180')
+    self.trigServo = servo180(trigServo_pin,'180')
 
-  def computeAngle(self,coor1,coor2):
-    angle = int
+  def computeAngles(self,coor1,coor2):
+    angle = [(coor1[i]-coor2[i])*self.pxDeg[i] for i in range(2)]
     return angle
   
+  def aim(movement):
+    pass
+
   def shoot(self):
     pass
 
+  def stopAndExit(self):
+    if self.mode=='rpi':
+      self.xServo.stop()
+      self.yServo.stop()
+      self.trigServo.stop()
+      GPIO.cleanup()
+
 
 class Servo():
-  def __init__(self,servoPIN,servoType='180'):
+  def __init__(self,servoPIN):
     self.valRange = [2,12]
-    self.type = servoType
     GPIO.setup(servoPIN, GPIO.OUT)
     self.pin = GPIO.PWM(servoPIN, 50)
 
@@ -57,15 +67,31 @@ class Servo():
       self.curRot = value
     self.pin.ChangeDutyCycle(self.curRot)
 
-  def rotateRad(self,radians,absolute=True):
-    if self.type == '180':
-      signal = radians*10+2
-
   def rotateDeg(self,degrees,absolute=True):
-    if self.type == '180':
-      signal = degrees/36*2+2
-      self.changeCycle()
+    pass
 
+  def controllRot(self):
+    pass
+
+
+class servo180(Servo):
+  def rotateDeg(self, degrees, absolute=True):
+    signal = degrees/36*2+2
+    self.changeCycle()
+
+
+class servo360(Servo):
+  def rotateDeg(self, degrees, absolute=True):
+    pass
+
+  def controllThread(que):
+    pass
+
+  def __init__(self, servoPIN):
+    super().__init__(servoPIN)
+
+
+'''
 if __name__ == '__main__':
   SERVO1 = 18
   SERVO2 = int()
@@ -99,3 +125,4 @@ if __name__ == '__main__':
 
     except:
       print('fail, retrying..')
+'''
