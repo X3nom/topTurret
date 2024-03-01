@@ -16,10 +16,9 @@ class Controller():
     self.FOV = [41,66]
     self.pxDeg = []
 
-
-    self.xServo = servo360(xServo_pin,'360')
-    self.yServo = servo180(yServo_pin,'180')
-    self.trigServo = servo180(trigServo_pin,'180')
+    self.xServo = Servo360(xServo_pin)
+    self.yServo = Servo180(yServo_pin)
+    self.trigServo = Servo180(trigServo_pin)
 
   def computeAngles(self,coor1,coor2):
     angle = [(coor1[i]-coor2[i])*self.pxDeg[i] for i in range(2)]
@@ -70,59 +69,22 @@ class Servo():
   def rotateDeg(self,degrees,absolute=True):
     pass
 
-  def controllRot(self):
-    pass
 
-
-class servo180(Servo):
+class Servo180(Servo):
   def rotateDeg(self, degrees, absolute=True):
     signal = degrees/36*2+2
     self.changeCycle()
 
 
-class servo360(Servo):
+class Servo360(Servo):
   def rotateDeg(self, degrees, absolute=True):
     pass
 
-  def controllThread(que):
+  def controllFunc(inQueue, outQueue):
     pass
 
   def __init__(self, servoPIN):
     super().__init__(servoPIN)
-
-
-'''
-if __name__ == '__main__':
-  SERVO1 = 18
-  SERVO2 = int()
-  SERVO3 = int()
-
-  servoPIN = 18
-  GPIO.setmode(GPIO.BCM)
-  GPIO.setup(SERVO1, GPIO.OUT)
-
-  p = GPIO.PWM(SERVO1, 50)
-  p.start(2)
-
-  serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  serversocket.bind(('0.0.0.0', 12345))
-  while True:
-    print('listening')
-    serversocket.listen()
-    sock,clientAddr = serversocket.accept()
-    print('accepted')
-    try:
-      while True:
-        received = sock.recv(1024).decode()
-        print(received)
-        instructions = received.split('-')
-        p.ChangeDutyCycle(float(instructions[0]))
-
-    except KeyboardInterrupt:
-      print('keyboard interrupt')
-      p.stop()
-      GPIO.cleanup()
-
-    except:
-      print('fail, retrying..')
-'''
+    self.angleQ = queue.Queue()
+    self.controllThread = threading.Thread()
+    self.controllThread.start()
