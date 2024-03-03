@@ -1,14 +1,20 @@
 #import RPi.GPIO as GPIO
 import time
 import math
-import socket
 import threading
 import queue
 
-try: import RPi.GPIO as GPIO
-except: 
-  mode = 'pc'
-else: mode = 'rpi'
+try:
+  import gpiozero
+  from gyro import mpu
+except:
+  print("ServoController WARNING: enviroment is not setup properly, servos will not work")
+  raise MissingLibrary
+
+
+class MissingLibrary(Exception):
+  pass
+
 
 class Controller():
   def __init__(self,imShape,xServo_pin,yServo_pin,trigServo_pin):
@@ -30,11 +36,10 @@ class Controller():
     pass
 
   def stopAndExit(self):
-    if self.mode=='rpi':
-      self.xServo.stop()
-      self.yServo.stop()
-      self.trigServo.stop()
-      GPIO.cleanup()
+    self.xServo.stop()
+    self.yServo.stop()
+    self.trigServo.stop()
+    
 
 
 class Servo():
