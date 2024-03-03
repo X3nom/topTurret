@@ -5,14 +5,13 @@ import socket
 import threading
 import queue
 
+try: import RPi.GPIO as GPIO
+except: 
+  mode = 'pc'
+else: mode = 'rpi'
+
 class Controller():
   def __init__(self,imShape,xServo_pin,yServo_pin,trigServo_pin):
-    try: import RPi.GPIO as GPIO
-    except: 
-      self.mode = 'pc'
-      return
-    else: self.mode = 'rpi'
-
     self.FOV = [41,66]
     self.pxDeg = []
 

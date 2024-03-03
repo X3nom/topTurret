@@ -6,10 +6,10 @@ Záměr projektu je vytvořit plně autonomní airsoft sentry-turret *(otočná 
 - Raspberry pi 5
 - rpi camera module v3
 - 3 servomotory:
-    - otáčení okolo osy Y
-    - sklon
-    - aktivace spouště
-- gyroskop/akcelerometr
+    - otáčení okolo osy Y (**360° MG996R**)
+    - sklon (**180° MG996R**)
+    - aktivace spouště (**180° MG996R**)
+- gyroskop/akcelerometr (**mpu6050**)
 - napájení (7.4V/11.1V li-pol baterie + ochrana)
 - *(zbraň)*
 
@@ -19,6 +19,7 @@ Záměr projektu je vytvořit plně autonomní airsoft sentry-turret *(otočná 
 - openCV
 - ultralytics - YOLOv8 (pytorch)
 - picamera2 *<s>libcamera</s>*
+- gpiozero *<s>RPI.GPIO</s>*
 
 # fungování
 Program je rozdělen do dvou hlavních částí + subčástí (hlavně v podobě python modulů)

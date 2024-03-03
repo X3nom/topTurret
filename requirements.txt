@@ -2,3 +2,6 @@ ultralytics
 scikit-image
 filterpy
 picamera2
+
+gpiozero
+mpu5060
