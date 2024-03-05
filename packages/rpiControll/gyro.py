@@ -8,7 +8,7 @@ class mpu(mpu6050): #able to zero itself
         self.zeroGyro(0.1)
 
 
-    def zeroGyro(self,t): # re zero self
+    def zeroGyro(self,t=0.1): # re zero self
         self.gZero = [0,0,0]
 
         startT = time.time()

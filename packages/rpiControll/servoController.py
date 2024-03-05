@@ -3,17 +3,9 @@ import time
 import math
 import threading
 import queue
+import gpiozero
+from gyro import mpu
 
-try:
-  import gpiozero
-  from gyro import mpu
-except:
-  print("ServoController WARNING: enviroment is not setup properly, servos will not work")
-  raise MissingLibrary
-
-
-class MissingLibrary(Exception):
-  pass
 
 
 class Controller():
@@ -42,53 +34,43 @@ class Controller():
     
 
 
-class Servo():
-  def __init__(self,servoPIN):
-    self.valRange = [2,12]
-    GPIO.setup(servoPIN, GPIO.OUT)
-    self.pin = GPIO.PWM(servoPIN, 50)
-
-    if self.type == '180': 
-      self.curRot = 2
-    else:
-      self.curRot = 0
-
-    self.pin.start(self.curRot)
-
-  def stop(self):
-    self.pin.stop()
-
-  def changeCycle(self,value,add=False):
-    if add:
-      tempRot = self.curRot + value
-      if tempRot < self.valRange[0]:
-        tempRot == self.valRange[0]
-      elif tempRot > self.valRange[1]:
-        tempRot == self.valRange[1]
-      self.curRot = tempRot
-    else:
-      self.curRot = value
-    self.pin.ChangeDutyCycle(self.curRot)
-
-  def rotateDeg(self,degrees,absolute=True):
-    pass
+class Servo180(gpiozero.AngularServo):
+  def __init__(self, pin=None, *, initial_angle=0, min_angle=-90, max_angle=90,
+                min_pulse_width=1 / 1000, max_pulse_width=2 / 1000, 
+                frame_width=20 / 1000, pin_factory=None):
+    
+    super().__init__(pin, initial_angle=initial_angle, min_angle=min_angle, max_angle=max_angle,
+                      min_pulse_width=min_pulse_width, max_pulse_width=max_pulse_width,
+                      frame_width=frame_width, pin_factory=pin_factory)
 
 
-class Servo180(Servo):
   def rotateDeg(self, degrees, absolute=True):
-    signal = degrees/36*2+2
-    self.changeCycle()
+    if absolute:
+      self.angle = degrees
+    else:
+      if self.min_angle > self.angle+degrees:
+        self.angle = self.min_angle
+
+      elif self.angle+degrees < self.max_angle:
+        self.angle = self.max_angle
+
+      else: 
+        self.angle += degrees
 
 
-class Servo360(Servo):
+
+
+class Servo360(gpiozero.Servo):
   def rotateDeg(self, degrees, absolute=True):
-    pass
+    self.angleQ.put(degrees)
 
   def controllFunc(inQueue, outQueue):
     pass
 
-  def __init__(self, servoPIN):
-    super().__init__(servoPIN)
+  def __init__(self, pin=None, *, initial_value=0, min_pulse_width=1 / 1000, max_pulse_width=2 / 1000, frame_width=20 / 1000, pin_factory=None):
+
+    super().__init__(pin, initial_value=initial_value, min_pulse_width=min_pulse_width, max_pulse_width=max_pulse_width, frame_width=frame_width, pin_factory=pin_factory)
+
     self.angleQ = queue.Queue()
     self.controllThread = threading.Thread()
     self.controllThread.start()

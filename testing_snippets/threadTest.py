@@ -1,10 +1,14 @@
 import threading
 import time
+import queue
 
-def testThread():
+def testThread(inQ):
+    inQ.get_nowait()
+    
     currTime()
 
 def currTime():
     print(time.time())
 
-threading.Thread(target=testThread).start()
+inQ = queue.Queue()
+threading.Thread(target=testThread, args=[inQ]).start()
