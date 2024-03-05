@@ -3,7 +3,7 @@ import time
 
 class mpu(mpu6050): #able to zero itself
     def __init__(self, address=0x68, bus=1):
-        super.__init__(self, address, bus)
+        super().__init__(address, bus)
         self.gZero = [0,0,0]
         self.zeroGyro(0.1)
 
