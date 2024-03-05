@@ -1,7 +1,8 @@
 # (all) the things I had to set to get this working
 
-### required commands
+### required commands, etc
 - `pip3 install -r requirements.txt` (you might need to add `--break-system-packages` on some distros)
+- add `dtoverlay=pwm` to `boot/firmware/config.txt`
 
 ### setting up
 - `i2cdetect -y 1` for checking i2c address of the mpu5060 gyroscope
