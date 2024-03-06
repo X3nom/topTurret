@@ -7,11 +7,6 @@ servo = servoController.Servo180(18)
 mpu = gyro.mpu(0x68)
 mpu.zeroGyro(0.3)
 
-servo.mid()
-while True:
-    inp = int(input("ang: "))
-    servo.angle = inp
-
 posX = 0
 startT = time.time()
 while True:
@@ -21,4 +16,3 @@ while True:
     os.system("clear")
     print(data[2])
     print(posX)
-    servo.rotateDeg(posX)

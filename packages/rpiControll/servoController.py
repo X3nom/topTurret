@@ -20,16 +20,11 @@ class Controller():
     angle = [(coor1[i]-coor2[i])*self.pxDeg[i] for i in range(2)]
     return angle
   
-  def aim(movement):
+  def aim(movementVec):
     pass
 
   def shoot(self):
     pass
-
-  def stopAndExit(self):
-    self.xServo.stop()
-    self.yServo.stop()
-    self.trigServo.stop()
     
 
 class Servo():
