@@ -3,14 +3,16 @@ import time
 import math
 import threading
 import queue
-#import gyro
-
+import sys
+sys.path.append('../topTurret')
+from packages.rpiControll import gyro
+from packages import pi5PWM
 
 
 class Controller():
   def __init__(self,imShape,xServo_pin,yServo_pin,trigServo_pin):
     self.FOV = [41,66]
-    self.pxDeg = []
+    self.pxDeg = [self.FOV[i] for i in range(2)]
 
     self.xServo = Servo360(xServo_pin)
     self.yServo = Servo180(yServo_pin)
@@ -28,11 +30,32 @@ class Controller():
     
 
 class Servo():
-  def __init__(self):
-    pass
+  def __init__(self, pin, pwmRange=[500,2500]):
+    '''
+    - pin: pin on which the servo PWM wire is connected, HAS TO SUPPORT HW PWM, pwm supporting pins: 12,13,14,15,18,19
+    - pwmRange: `[lowest pulse width (lowest angle), highest pulse width (highest angle)]`
+    '''
+    self.pin = pin
+    self.pwmRange = pwmRange
+    self.pwmController = pi5PWM.pi5RC(pin)
+  
+  def val2pw(self,val):
+    '''
+    - val: value in range [-1,1], where -1 represents minimum pulse width and 1 maximum
+    '''
+    return self.pwmRange[0]+(self.pwmRange[1]-self.pwmRange[0])*(val+1)/2
+  
+  def stop(self):
+    '''
+    stop servo from moving and readjusting itself
+    '''
+    self.pwmController.setDutyCycle(0)
 
-class Servo180(Servo): #/TODO: REWORK SERVO OBJECTS TO WORK WITH HARDWARE PWM
 
+
+class Servo180(Servo):
+  def __init__(self, pin, pwmRange):
+    super().__init__(pin, pwmRange)
 
   def rotateDeg(self, degrees, absolute=True):
     if absolute:
@@ -41,7 +64,7 @@ class Servo180(Servo): #/TODO: REWORK SERVO OBJECTS TO WORK WITH HARDWARE PWM
       if self.min_angle > self.angle+degrees:
         self.angle = self.min_angle
 
-      elif self.angle+degrees < self.max_angle:
+      elif self.angle+degrees < self.max_angle: #//Tomas was here
         self.angle = self.max_angle
 
       else:
@@ -51,16 +74,15 @@ class Servo180(Servo): #/TODO: REWORK SERVO OBJECTS TO WORK WITH HARDWARE PWM
 
 
 class Servo360(Servo):
-  def rotateDeg(self, degrees, absolute=True):
-    self.angleQ.put(degrees)
-
-  def controllFunc(inQueue, outQueue):
-    pass
-
-  def __init__(self, pin=None, *, initial_value=0, min_pulse_width=1 / 1000, max_pulse_width=2 / 1000, frame_width=20 / 1000, pin_factory=None):
-
-    super().__init__(pin, initial_value=initial_value, min_pulse_width=min_pulse_width, max_pulse_width=max_pulse_width, frame_width=frame_width, pin_factory=pin_factory)
-
+  def __init__(self, pin, pwmRange):
+    super().__init__(pin, pwmRange)
     self.angleQ = queue.Queue()
     self.controllThread = threading.Thread()
     self.controllThread.start()
+
+  def rotateDeg(self, degrees, absolute=True):
+    self.angleQ.put(degrees)
+
+  def __controllFunc(inQueue, outQueue):
+    pass
+
