@@ -2,7 +2,7 @@ import sys, os, time
 sys.path.append('../topTurret') #import from parent dir
 from packages.rpiControll import gyro, servoController
 
-servo = servoController.Servo180(18)
+#servo = servoController.Servo180(18)
 
 mpu = gyro.mpu(0x68)
 mpu.zeroGyro(0.3)

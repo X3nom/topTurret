@@ -39,16 +39,15 @@ class Servo():
     self.pwmRange = pwmRange
     self.pwmController = pi5PWM.pi5RC(pin)
   
+  def setVal(self,value):
+    self.pwmController.setDutyCycle(self.val2pw(value))
+
   def val2pw(self,val):
-    '''
-    - val: value in range [-1,1], where -1 represents minimum pulse width and 1 maximum
-    '''
+    '''- val: value in range [-1,1], where -1 represents minimum pulse width and 1 maximum'''
     return self.pwmRange[0]+(self.pwmRange[1]-self.pwmRange[0])*(val+1)/2
   
   def stop(self):
-    '''
-    stop servo from moving and readjusting itself
-    '''
+    '''stop servo from moving and readjusting itself'''
     self.pwmController.setDutyCycle(0)
 
 

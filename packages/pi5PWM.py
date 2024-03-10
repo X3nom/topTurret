@@ -51,6 +51,7 @@ class pi5RC:
                self.file_duty.close()
 
     def setDutyCycle(self, onTime_us):
+        onTime_us = int(onTime_us)
         '''
         set duty cycle in miliseconds
         '''
