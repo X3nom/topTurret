@@ -20,7 +20,7 @@ Záměr projektu je vytvořit plně autonomní airsoft sentry-turret *(otočná 
 - openCV
 - ultralytics - YOLOv8 (pytorch)
 - picamera2 *<s>libcamera</s>*
-- gpiozero *<s>RPI.GPIO</s>*
+- *<s>gpiozero</s>, <s>RPI.GPIO</s>*
 
 # fungování
 Program je rozdělen do dvou hlavních částí + subčástí (hlavně v podobě python modulů)
@@ -57,6 +57,6 @@ Tracker rozhoduje teamy na základě barevných pásek na ruce. Pokud nelze team
 - [ ] přepočet px -> rad
 - [ ] implementace 360⁰ servo ovládání
 - [ ] napájení
-    - [ ] provizorní ze zdi
+    - [x] provizorní ze zdi
     - [ ] baterie
 - [ ] prototyp věžě (pohyblivá na x,y + trigger servo)
