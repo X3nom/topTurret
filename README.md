@@ -10,7 +10,8 @@ Záměr projektu je vytvořit plně autonomní airsoft sentry-turret *(otočná 
     - sklon (**180° MG996R**)
     - aktivace spouště (**180° MG996R**)
 - gyroskop/akcelerometr (**mpu6050**)
-- napájení (7.4V/11.1V li-pol baterie + ochrana)
+- napájení (11.1V li-pol baterie)
+    - 11.1V li-pol => step-down na 5V schopný usb pd a proudu 5A => rpi usb-c port / direct power přes 5V a GND piny
 - *(zbraň)*
 
 ## software
