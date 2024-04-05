@@ -92,6 +92,7 @@ class Team(): #class containing info about what clolor range of armband is assoc
 
 def team_from_dict(dict) -> Team:
     return Team(dict["name"], np.array(dict["upper"]), np.array(dict["lower"]))
+    
 
 
 def find_closest_enemy(enemies,screencenter):
