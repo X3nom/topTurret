@@ -11,7 +11,7 @@ blob_params.filterByColor = False
 
 # Filter by area (value for area here defines the pixel value)
 blob_params.filterByArea = True
-blob_params.minArea = 1
+blob_params.minArea = 100
 blob_params.maxArea = 5000000
 
 # Filter by circularity
@@ -30,14 +30,14 @@ blob_params.minInertiaRatio = 0.01
 blob_detector = cv.SimpleBlobDetector_create(blob_params)
 
 
-colRange = [[179,255,255],
-            [162,169,106]]
+colRange = [[59,255,255],
+            [35,5,0]]
 cap = Cam.vCap(0)
 persistant = np.zeros([cap.size[0], cap.size[1], 3], np.uint8)
 while True:
     frame = cap.read()
-    #frame = cv.imread(r"C:\Users\Panchártek Jakub\Downloads\akjfdl;kafsj;ldgh.jpg")
     
+    #frame = cv.imread(r"C:\Users\Panchártek Jakub\Downloads\akjfdl;kafsj;ldgh.jpg")
 
     hsvFrame = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
 
@@ -51,9 +51,15 @@ while True:
 
     keypoints = blob_detector.detect(mask)
 
-    frame = cv.drawKeypoints(frame, keypoints, np.array([]), (0,0,255), cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    frame_out = frame.copy()
+    frame_out = cv.drawKeypoints(frame_out, keypoints, np.array([]), (0,0,255), cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    
+    for kp in keypoints:
+        #print(kp.size)
+        cv.putText(frame_out, str(int(kp.size)), [int(x) for x in kp.pt], cv.FONT_HERSHEY_SIMPLEX, 1, (255,0,255), 2)
 
+    
     cv.imshow("mask", mask)
-    cv.imshow("frame", frame)
+    cv.imshow("frame", frame_out)
     #cv.imshow("pers", persistant)
     cv.waitKey(1)
