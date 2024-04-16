@@ -30,8 +30,9 @@ blob_params.minInertiaRatio = 0.01
 blob_detector = cv.SimpleBlobDetector_create(blob_params)
 
 
-colRange = [[59,255,255],
-            [35,5,0]]
+colRange = [[69,255,255],
+            [0,94,0]]
+
 cap = Cam.vCap(0)
 persistant = np.zeros([cap.size[0], cap.size[1], 3], np.uint8)
 while True:
@@ -42,10 +43,10 @@ while True:
     hsvFrame = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
 
     mask = cv.inRange(hsvFrame, np.array(colRange[1]), np.array(colRange[0]))
-    #mask = cv.GaussianBlur(mask, (11,11), 0)
+    mask = cv.GaussianBlur(mask, (9,9), 0)
 
     #persistant, contours = cv.findContours(mask, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-    #mask[mask!=0] = 255
+    mask[mask!=0] = 255
 
     #mask = cv.cvtColor(mask, cv.COLOR_GRAY2BGR)
 

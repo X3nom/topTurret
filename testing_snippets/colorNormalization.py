@@ -12,6 +12,8 @@ plt.ion()
 
 figure, ax = plt.subplots()#figsize=(10, 8))
 
+colRange = [[69,255,255],
+            [0,94,0]]
 
 cap = Cam.vCap(0)
 
@@ -28,13 +30,16 @@ while True:
         plt.plot(histr,color = col)
         #plt.xlim([0,256])
         '''
-    
+    ormask = cv.inRange(frame_hsv, np.array(colRange[1]), np.array(colRange[0]))
     frame_hsv[:, :, 2] = cv.equalizeHist(frame_hsv[:, :, 2])
+    mask = cv.inRange(frame_hsv, np.array(colRange[1]), np.array(colRange[0]))
 
     norm_frame = cv.cvtColor(frame_hsv, cv.COLOR_HSV2BGR)
         
     cv.imshow("origin", frame)
     cv.imshow("equ", norm_frame)
+    cv.imshow("mask",mask)
+    cv.imshow("orig mask",ormask)
     cv.waitKey(1)
 
     '''
