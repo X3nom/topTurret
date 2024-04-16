@@ -1,4 +1,9 @@
 #!/usr/bin/python3
+'''
+original author: github.com/danjperron
+
+-thanks for the code!
+'''
 import os
 import time
 
@@ -6,7 +11,7 @@ class pi5RC:
 
     def __init__(self,Pin):
         pins = [ 12,13,14,15,18,19]
-        afunc= [ 'a0','a0','a0', 'a0', 'a3','a3'];
+        afunc= [ 'a0','a0','a0', 'a0', 'a3','a3']
         self.pwmx = [ 0,1,2,3,2,3]
         self.enableFlag=False
         self.onTime_us = 0
@@ -45,7 +50,11 @@ class pi5RC:
            if not self.file_duty.closed:
                self.file_duty.close()
 
-    def set_duty(self, onTime_us):
+    def setDutyCycle(self, onTime_us):
+        onTime_us = int(onTime_us)
+        '''
+        set duty cycle in miliseconds
+        '''
         if self.pin is not None:
             if not self.enableFlag:
                 self.enable(True)
