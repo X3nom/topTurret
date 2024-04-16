@@ -21,12 +21,12 @@ while True:
 
     if instruction == 'w':
         value = sys.stdin.readline().strip()
-        value = int(value)
+        value = int(value/1e-6) # ms to ns
 
         pwm = pwm_pins[pin]
-        pwm.duty_u16(value)
+        pwm.duty_ns(value)
 
-    elif instruction == 'n':
+    elif instruction == 'n' and pin not in pwm_pins.keys():
         pwm = PWM(Pin(pin))
-        pwm.freq(2000)
+        pwm.freq(50) #2000
         pwm_pins.update((pin, pwm))
