@@ -1,0 +1,18 @@
+{
+    "teams":[
+        {
+            "name": "red",
+            "upper": [179,255,255],
+            "lower": [162,169,106]
+        },
+        {
+            "name": "blue",
+            "upper": [123,255,191],
+            "lower": [106,174,52]
+        }
+    ],
+
+    "friendly":["red"],
+    "enemy":["blue"]
+}
+

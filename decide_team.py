@@ -6,6 +6,7 @@ import time
 import platform
 from packages import sort
 from packages.rpiControll import Cam
+from packages import team_json_loader
 
 
 class Id_team(): #associate id with team
@@ -39,6 +40,8 @@ class Id_team(): #associate id with team
             self.teams_values[self.teams.index(team)] += 1
             self.team = self.teams[self.teams_values.index(max(self.teams_values))]
         self.countdown = self.max_countdown
+
+
 
 class Ids():
     def __init__(self,teams,colorless_playing=False) -> None:
@@ -78,12 +81,19 @@ class Ids():
             self.ids.pop(self.ids.index(self.get_id_from_ids(id_to_pop)))
     
 
+
 class Team(): #class containing info about what clolor range of armband is associated to which team name
     def __init__(self,name,upper_color,lower_color,display_color=(255,0,255)) -> None:
         self.name = name #team name
         self.upper_color = upper_color # brightest/highest color shade that is recognized as teams armband (numpy array, color has to be in VHS format)
         self.lower_color = lower_color # darkest/lowest color shade that is recognized as teams armband (numpy array, color has to be in VHS format)
         self.display_color = display_color # color of player border (mainly for debuging purposes)
+
+
+def team_from_dict(dict) -> Team:
+    return Team(dict["name"], np.array(dict["upper"]), np.array(dict["lower"]))
+    
+
 
 def find_closest_enemy(enemies,screencenter):
     if len(enemies) > 0:
@@ -104,6 +114,8 @@ model = YOLO('./Yolo_weights/yolov8n.pt') # load up neural network model
 
 tracker = sort.Sort(30,1)
 
+team_config = team_json_loader.TeamConfig()
+
 colorless_playing = False # True = FORCE DETECTION OF COLORLESS TEAM !
 people = np.empty((0,5))
 color = (0,0,255)
@@ -114,6 +126,7 @@ cap = Cam.vCap(capture)
 
 screencenter = [round(cap.size[0]/2),round(cap.size[1]/2)]
 
+'''
 all_teams = [ # add/change teams  --------------------------------------------------------
     Team('Unknown', np.array([0,0,0]), np.array([255,255,255]), (0,255,0)), #used for people not matching description of any other team, !-DO NOT CHANGE OR REMOVE-!
 
@@ -126,16 +139,19 @@ all_teams = [ # add/change teams  ----------------------------------------------
 
 playing_teams = ['red','blue'] # EDIT ALL PLAYING TEAMS !
 enemy_teams = ['blue'] # EDIT ENEMY TEAMS !
+'''
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 teams = []
-teams.append(all_teams[0])
-for et in playing_teams:
-    for t in all_teams:
-        if t.name == et:
-            teams.append(t)
-if 'colorless' in playing_teams:
-    colorless_playing = True
+teams.append( Team('Unknown', np.array([0,0,0]), np.array([255,255,255]), (0,255,0)) )
+
+for tm in [*team_config.get_enemy(), *team_config.get_friendly()]:
+    teams.append(team_from_dict(tm))
+
+enemy_teams = team_config.teams_dict["enemy"]
+
+
 ids = Ids(teams,colorless_playing)
+
 
 if cap.mode == 'pc' and not cap.isOpen():
     print("Cannot open camera")
@@ -161,6 +177,7 @@ while True: # Main loop !!!!!!
                 person_arr = np.array([x1,y1,x2,y2,box.conf[0].cpu().numpy()]) #get data about detection into format required by tracker
                 people = np.vstack((people,person_arr))
 
+
     tracker_return = tracker.update(people) #sends data about detections to sort, sort tryes to associate people from previous frames with new detections gives them IDs
     enemies = np.empty((0,5))
     for res in tracker_return:
@@ -169,7 +186,8 @@ while True: # Main loop !!!!!!
 
         center = [round(x1+abs(x1-x2)/2),round(y1+abs(y1-y2)/2)]
 
-        person = frame[y1:y2,x1:x2]
+        person = frame[y1:y2,x1:x2] #cut out section of frame containing detected person
+
         if len(person) > 0 and all(i > -1 for i in [x1,y1,x2,y2]): #check if cordinates of person are valid, othervise empty selections or negative cordinates can cause openCV error
             #find color matches with defined teams
             hsv_person = cv.cvtColor(person,cv.COLOR_BGR2HSV)
@@ -177,10 +195,10 @@ while True: # Main loop !!!!!!
             for team in teams:
                 mask = cv.inRange(hsv_person,team.lower_color,team.upper_color)
                 mask_sums.append(np.sum(mask))
-            if max(mask_sums) > 15:
+            if max(mask_sums) > 15:     #//TODO: implement blob detection for higher detection accuracy
                 best_team_match = teams[mask_sums.index(max(mask_sums))]
-            else:
-                best_team_match = all_teams[0]
+            else: #not matched with any team
+                best_team_match = teams[0]
 
             person_team = ids.check_id(Id,best_team_match)
             color = person_team.display_color
