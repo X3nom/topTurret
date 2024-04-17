@@ -43,9 +43,8 @@ while True:
     hsvFrame = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
 
     mask = cv.inRange(hsvFrame, np.array(colRange[1]), np.array(colRange[0]))
+    #correct for small imperfections
     mask = cv.GaussianBlur(mask, (9,9), 0)
-
-    #persistant, contours = cv.findContours(mask, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     mask[mask!=0] = 255
 
     #mask = cv.cvtColor(mask, cv.COLOR_GRAY2BGR)
