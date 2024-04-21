@@ -82,6 +82,7 @@ class Servo360(Servo):
     self.angleQ = queue.Queue()
     self.controllThread = threading.Thread()
     self.controllThread.start()
+    self.gyro = gyro.mpu()
 
   def rotateDeg(self, degrees, absolute=True):
     self.angleQ.put(degrees)
