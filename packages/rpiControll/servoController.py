@@ -8,6 +8,10 @@ sys.path.append('../topTurret')
 from packages.rpiControll import gyro
 from packages import pi5PWM
 
+'''
+using RPI5s hardware PWM
+'''
+
 
 class Controller():
   def __init__(self,imShape,xServo_pin,yServo_pin,trigServo_pin):
