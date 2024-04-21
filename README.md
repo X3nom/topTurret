@@ -4,6 +4,7 @@ Záměr projektu je vytvořit plně autonomní airsoft sentry-turret *(otočná 
 # technologie
 ## hardware
 - Raspberry pi 5
+- raspberry pi pico (**ovladani pwm**)
 - rpi camera module v3
 - 3 servomotory:
     - otáčení okolo osy Y (**360° MG996R**)
