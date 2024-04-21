@@ -1,7 +1,10 @@
 """
 handle communication with pico (external pwm driver)
-"""
 
+servo boundaries:
+mid low - 4700 //right
+mid high - 5070 //left
+"""
 import serial
 
 class Pico_serial_pwm():
@@ -9,6 +12,7 @@ class Pico_serial_pwm():
         self.port = serial.Serial(port)
     
     def set_duty_cycle(self, pin, duty):
-        p = chr(pin)
-        s = f"w{p}{duty}\n".encode()
+        s = f"w{pin}\r{duty}\r".encode()
         self.port.write(s)
+        self.port.flush()
+
