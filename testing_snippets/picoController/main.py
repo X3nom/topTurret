@@ -22,6 +22,8 @@ def set_duty_cycle(pin, value):
 
 
 
+
+
 pwm_pins = {}
 
 
@@ -37,5 +39,5 @@ while True:
             add_pwm(pin)
 
         value = sys.stdin.readline().strip()
-        value = int(value/1e-6) # ms to ns
+        value = int(value) # ms to ns
         set_duty_cycle(pin, value)
