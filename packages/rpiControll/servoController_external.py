@@ -65,7 +65,7 @@ class PWM():
 
 
 class Servo180(PWM):
-  def __init__(self, pin, serial_controller, pwmRange=[0,65535]):
+  def __init__(self, pin, serial_controller, pwmRange=[3700, 6070]):
     super().__init__(pin, serial_controller, pwmRange)
 
   def rotateDeg(self, degrees, absolute=True):
@@ -85,8 +85,8 @@ class Servo180(PWM):
 
 
 class Servo360(PWM):
-  def __init__(self, pin, serial_controller, pwm_gap_range=[4700, 5070], pwmRange=[0,65535]):
-    super().__init__(pin, serial_controller, pwmRange)
+  def __init__(self, pin, serial_controller, pwm_range_L=[3700, 4700], pwm_range_R=[5070, 6070]):
+    super().__init__(pin, serial_controller, [pwm_range_L[0], pwm_range_R[1]])
     self.angleQ = queue.Queue()
     self.controllThread = threading.Thread()
     self.controllThread.start()
