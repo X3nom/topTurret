@@ -21,7 +21,6 @@ class Controller():
     self.yServo = Servo180(yServoPin, self.serial_controller)
     self.trigger = PWM(triggerPin, self.serial_controller)
 
-
   def computeAngles(self,coor1,coor2):
     angle = [(coor1[i]-coor2[i])*self.pxDeg[i] for i in range(2)]
     return angle
@@ -31,20 +30,26 @@ class Controller():
 
   def shoot(self):
     pass
-
-  def controllThread(self):
-    self.trigger.setVal(1)
     
 
 class PWM():
   def __init__(self, pin, serial_controller, pwmRange=[0,65535]):
     self.pin = pin
     self.pwmRange = pwmRange
-
-    self.pwmController = serial_controller0
+    self.val = 0
+    self.pwmController = serial_controller
   
-  def setVal(self,value):
-    self.pwmController.set_duty_cycle(self.pin, self.val2pw(value))
+  def setVal(self,value, absolute=True):
+    if absolute:
+      self.val = value
+
+    else:
+      self.val += value
+      if self.val > 1: self.val = 1
+      elif self.val < -1: self.val = -1
+
+    self.pwmController.set_duty_cycle(self.pin, self.val2pw(self.val))
+
 
   def setValRaw(self, value):
     self.pwmController.set_duty_cycle(self.pin, value) 
@@ -60,7 +65,7 @@ class PWM():
 
 
 class Servo180(PWM):
-  def __init__(self, pin, serial_controller, pwm_gap_range=[4700, 5070], pwmRange=[0,65535]):
+  def __init__(self, pin, serial_controller, pwmRange=[0,65535]):
     super().__init__(pin, serial_controller, pwmRange)
 
   def rotateDeg(self, degrees, absolute=True):
