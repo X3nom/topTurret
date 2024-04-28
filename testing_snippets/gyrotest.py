@@ -1,6 +1,6 @@
 import sys, os, time
 sys.path.append('../topTurret') #import from parent dir
-from packages.rpiControll import gyro, servoController
+from packages.rpiControll import gyro, servoController_external
 
 #servo = servoController.Servo180(18)
 
@@ -14,5 +14,5 @@ while True:
     posX += data[2]*(time.time()-startT) #deg/sec * deltaTime
     startT = time.time()
     os.system("clear")
-    print(data[2])
+    print()
     print(posX)
