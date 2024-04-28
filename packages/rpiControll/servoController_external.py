@@ -122,7 +122,7 @@ class Servo360(PWM):
 
 
   def gyroThread(self):
-    ROTATING_AXIS = 0
+    ROTATING_AXIS = 2
     ROTATION_ERROR = 1
 
     mpu = gyro.mpu()
@@ -152,12 +152,14 @@ class Servo360(PWM):
         current_rotation = 0
         rotating = True
 
-      
+      rotation_rate = mpu.getGyroZData()[ROTATING_AXIS]
       delta_time = time.time() - last_time
+      delta_rotation = rotation_rate * delta_time
       last_time = time.time()
-      delta_rotation = mpu.getGyroZData()[ROTATING_AXIS]
+      
+      current_rotation += delta_rotation
 
-      current_rotation += delta_rotation * delta_time
+
 
       print(angle, current_rotation)
       
@@ -167,10 +169,10 @@ class Servo360(PWM):
 
 
       elif current_rotation < angle:
-        self.setVal(1)
+        self.setVal(-1)
 
       else:
-        self.setVal(-1)
+        self.setVal(1)
 
 
 

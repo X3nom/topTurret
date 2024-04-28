@@ -1,6 +1,6 @@
 import sys, os, time
 sys.path.append('../topTurret') #import from parent dir
-from packages.rpiControll import gyro, servoController_external
+from packages.rpiControll import gyro #servoController_external
 
 #servo = servoController.Servo180(18)
 
