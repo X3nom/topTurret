@@ -20,3 +20,5 @@ pxDeg = [mid[i]/fov[i] for i in range(2)]
 while True:
     frame = cap.read()
     
+    cv.imshow("window", frame)
+    cv.waitKey(1)

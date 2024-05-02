@@ -13,9 +13,9 @@ from packages import pico_serial_pwm
 
 class Controller():
   def __init__(self,imShape,xServoPin,yServoPin,triggerPin,serial_port='/dev/ttyACM0'):
-    self.FOV = [41,66]
+    self.FOV = [41,66] #deg
     self.min_max = [0] #TODO max
-    self.pxDeg = [self.FOV[i] for i in range(2)]
+    self.pxDeg = [self.FOV[i]/imShape[i] for i in range(2)] #degres/pixel
 
     self.serial_controller = pico_serial_pwm.Pico_serial_pwm(serial_port)
 
@@ -27,8 +27,8 @@ class Controller():
     angle = [(coor1[i]-coor2[i])*self.pxDeg[i] for i in range(2)]
     return angle
   
-  def aim(movementVec):
-    pass
+  def aim(self, movement_px_vec): # [x,y]
+    movement_deg_vec = [movement_px_vec[i]*self.pxDeg[i] for i in range(2)]
 
   def shoot(self):
     pass
@@ -74,20 +74,27 @@ class PWM():
 class Servo180(PWM):
   def __init__(self, pin, serial_controller, pwmRange=[3700, 6070]):
     super().__init__(pin, serial_controller, pwmRange)
+    self.angle_range = [0,180]
+    self.angle = (self.angle_range[1]-self.angle_range[0])/2
+
+
 
   def rotateDeg(self, degrees, absolute=True):
     if absolute:
       self.angle = degrees
     else:
-      if self.min_angle > self.angle+degrees:
-        self.angle = self.min_angle
+      if self.angle_range[0] > self.angle+degrees:
+        self.angle = self.angle_range[0]
 
-      elif self.angle+degrees < self.max_angle: #//Tomas was here
-        self.angle = self.max_angle
+      elif self.angle_range[1] < self.angle+degrees:
+        self.angle = self.angle_range[1]
 
       else:
         self.angle = self.angle + degrees
 
+
+  def deg2val(self, degress):
+    val = degress/(self.angle_range[1] - self.angle_range[0])
 
 
 

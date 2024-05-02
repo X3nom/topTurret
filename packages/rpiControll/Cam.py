@@ -28,7 +28,7 @@ class vCap():
         else:
             return self.vcap.read()
     def isOpen(self):
-        if self.mode == "rpi": pass
+        if self.mode == "rpi": return True
         else:
             return self.vcap.vcap.isOpened()
 
