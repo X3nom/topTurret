@@ -7,6 +7,7 @@ import platform
 from packages import sort
 from packages.rpiControll import Cam
 from packages import team_json_loader
+from packages.rpiControll import servoController_external
 
 
 class Id_team(): #associate id with team
@@ -95,7 +96,7 @@ def team_from_dict(dict) -> Team:
     
 
 
-def find_closest_enemy(enemies,screencenter):
+def find_closest_enemy(enemies,crosshair_coor):
     if len(enemies) > 0:
         centers = []
         for enemy in enemies:
@@ -104,15 +105,65 @@ def find_closest_enemy(enemies,screencenter):
             center = [round(x1+abs(x1-x2)/2),round(y1+abs(y1-y2)/2)]
             centers.append(center)
         closest_center = centers[0]
-        closest_center_dist = np.sqrt(abs(closest_center[0]-screencenter[0])**2+abs(closest_center[1]-screencenter[1])**2)
+        closest_center_dist = np.sqrt(abs(closest_center[0]-crosshair_coor[0])**2+abs(closest_center[1]-crosshair_coor[1])**2)
         for center in centers:
-            if np.sqrt(abs(center[0]-screencenter[0])**2+abs(center[1]-screencenter[1])**2) < closest_center_dist:
+            if np.sqrt(abs(center[0]-crosshair_coor[0])**2+abs(center[1]-crosshair_coor[1])**2) < closest_center_dist:
                 closest_center = center
+
         return closest_center, enemies[centers.index(closest_center)]
+
+
+
+def attack_enemy(servo_controller, last_frame_time, enemy, crosshair_coor):
+    KILL_DISTANCE = 0.5 # how close to center to shoot (portion of detection)
+
+    x1,y1,x2,y2,Id = enemy
+    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+
+    enemy_center = [round(x1+abs(x1-x2)/2),round(y1+abs(y1-y2)/2)]
+
+    dist = np.sqrt(abs(enemy_center[0]-crosshair_coor[0])**2+abs(enemy_center[1]-crosshair_coor[1])**2)
+
+
+    if dist <= abs(x1-x2)*KILL_DISTANCE and dist <= abs(y1-y2)*KILL_DISTANCE: # target in acceptable range to shoot
+        # servo_controller.shoot()
+        print("SHOOT")
+        pass
+
+    else: #target not aimed at, perform aiming
+        servo_controller.aim(crosshair_coor, enemy_center, last_frame_time)
+
+
+ 
+
+
+
+
+
+
+# SETUPS
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# capture setup ----------------
+
+capture = 0#r"C:/Users/Jakub/Programming/Python/openCV/samples/randalls squad sample.mp4" # <--- set video capture (source)
+
+cap = Cam.vCap(capture)
+
+cap_size = cap.size
+
+screencenter = [round(cap_size[0]/2),round(cap_size[1]/2)]
+
+crosshair_coor = screencenter
+
+# capture setup =========
+# tracking setup --------------
+
 model = YOLO('./Yolo_weights/yolov8n.pt') # load up neural network model
 
 tracker = sort.Sort(30,1)
+
+# tracking setup =======
+# teams setup ----------------
 
 team_config = team_json_loader.TeamConfig()
 
@@ -120,27 +171,6 @@ colorless_playing = False # True = FORCE DETECTION OF COLORLESS TEAM !
 people = np.empty((0,5))
 color = (0,0,255)
 
-capture = 0#r"C:/Users/Jakub/Programming/Python/openCV/samples/randalls squad sample.mp4" # <--- set video capture (source)
-
-cap = Cam.vCap(capture)
-
-screencenter = [round(cap.size[0]/2),round(cap.size[1]/2)]
-
-'''
-all_teams = [ # add/change teams  --------------------------------------------------------
-    Team('Unknown', np.array([0,0,0]), np.array([255,255,255]), (0,255,0)), #used for people not matching description of any other team, !-DO NOT CHANGE OR REMOVE-!
-
-    Team('colorless', np.array([0,0,0]), np.array([255,255,255]), (255,0,255)),#special team with invalid color range, only if team with no color is playing
-
-    Team('blue', np.array([123,255,191]), np.array([106,174,52]), (255,0,0)),
-    Team('red', np.array([179,255,255]), np.array([162,169,106]), (0,0,255)),
-    Team('yellow', np.array([29,255,255]), np.array([18,165,89]), (0,255,255))
-] # You can add more teams, team object syntax: Team('name of team', brightest color of armband (in VHS format), lowest color of armband (also VHS))
-
-playing_teams = ['red','blue'] # EDIT ALL PLAYING TEAMS !
-enemy_teams = ['blue'] # EDIT ENEMY TEAMS !
-'''
-# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 teams = []
 teams.append( Team('Unknown', np.array([0,0,0]), np.array([255,255,255]), (0,255,0)) )
 
@@ -152,11 +182,24 @@ enemy_teams = team_config.teams_dict["enemy"]
 
 ids = Ids(teams,colorless_playing)
 
+# teams setup ========
+# servo setup ---------
+
+try:
+    servo_controller = servoController_external.Controller(cap_size, 0, 1, 2)
+except:
+    print("ERROR: servo controller could not be loaded, running without servos!!")
+    servo_controller = None
+
+# servo setup =======
+# ENTERING MAIN LOOP ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 if cap.mode == 'pc' and not cap.isOpen():
     print("Cannot open camera")
     exit()
+
 last_frame_time = time.time()
+
 while True: # Main loop !!!!!!
     last_frame_time = time.time()
 
@@ -213,11 +256,16 @@ while True: # Main loop !!!!!!
             cv.putText(frame_out,str(int(Id)),np.array([x1,y2-10]),cv.FONT_HERSHEY_SIMPLEX,1,color,2,cv.LINE_AA)
 
             cv.drawMarker(frame_out,screencenter,(255,0,255),cv.MARKER_CROSS,50,2)
-    if len(enemies) > 0:
-        closest_center, closest_enemy = find_closest_enemy(enemies,screencenter)
+
+
+    if len(enemies) > 0: # aim at closest enemy to crosshair
+        closest_center, closest_enemy = find_closest_enemy(enemies, crosshair_coor)
+
+        attack_enemy(servo_controller, last_frame_time, closest_enemy, crosshair_coor)
 
         cv.line(frame_out,closest_center,screencenter,(255,0,255),2,cv.LINE_AA)
         cv.drawMarker(frame_out,closest_center,ids.get_id_from_ids(closest_enemy[4]).team.display_color,cv.MARKER_SQUARE,thickness=2)
+
 
     ids.update()
     cv.imshow("test",frame_out)

@@ -11,27 +11,31 @@ from packages import pico_serial_pwm
 
 
 
-class Controller():
+class Controller(): 
   def __init__(self,imShape,xServoPin,yServoPin,triggerPin,serial_port='/dev/ttyACM0'):
-    self.FOV = [41,66] #deg
+    self.FOV = [66, 41] #deg
     self.min_max = [0] #TODO max
     self.pxDeg = [self.FOV[i]/imShape[i] for i in range(2)] #degres/pixel
 
     self.serial_controller = pico_serial_pwm.Pico_serial_pwm(serial_port)
+    # self.serial_controller.init_threaded()
 
     self.xServo = Servo360(xServoPin, self.serial_controller)
     self.yServo = Servo180(yServoPin, self.serial_controller)
     self.trigger = PWM(triggerPin, self.serial_controller)
 
-  def computeAngles(self,coor1,coor2):
-    angle = [(coor1[i]-coor2[i])*self.pxDeg[i] for i in range(2)]
-    return angle
   
-  def aim(self, movement_px_vec): # [x,y]
+  def aim(self, crosshair_coor, target_coor, measure_delta_time): # [x,y]
+    movement_px_vec = [crosshair_coor[i] - target_coor[i] for i in range(2)]
     movement_deg_vec = [movement_px_vec[i]*self.pxDeg[i] for i in range(2)]
 
+    # perform rotation
+    self.xServo.rotateDeg_compensated(movement_deg_vec[0], measure_delta_time)
+    # self.yServo.rotateDeg(movement_deg_vec[1]) TODO: UNCOMMENT
+
+
   def shoot(self):
-    pass
+    self.trigger.pulseVal(1, 0.3)
     
 
 
@@ -42,7 +46,10 @@ class PWM():
     self.pwmRange = pwmRange
     self.val = 0
     self.pwmController = serial_controller
-  
+
+  def __del__(self):
+    self.stop()
+
   def setVal(self,value, absolute=True):
     if absolute:
       self.val = value
@@ -66,6 +73,15 @@ class PWM():
     '''stop servo from moving and readjusting itself'''
     self.pwmController.set_duty_cycle(self.pin, 0)
     self.val = -2
+  
+  def pulseVal(self, val, pulse_time):
+    thread = threading.Thread(target=self._pulse_thread, args=(val, pulse_time))
+    thread.start()
+
+  def _pulse_thread(self, val, pulse_time):
+    self.setVal(value)
+    time.sleep(pulse_time)
+    self.stop()
 
 
 
@@ -76,10 +92,12 @@ class Servo180(PWM):
     super().__init__(pin, serial_controller, pwmRange)
     self.angle_range = [0,180]
     self.angle = (self.angle_range[1]-self.angle_range[0])/2
+    
+    self.rotating = False
 
 
 
-  def rotateDeg(self, degrees, absolute=True):
+  def rotateDeg(self, degrees, absolute=False):
     if absolute:
       self.angle = degrees
     else:
@@ -93,8 +111,12 @@ class Servo180(PWM):
         self.angle = self.angle + degrees
 
 
+    self.setVal(self.deg2val(self.angle))
+
+
   def deg2val(self, degress):
-    val = degress/(self.angle_range[1] - self.angle_range[0])
+    val = (degress/(self.angle_range[1] - self.angle_range[0]))*2-1
+
 
 
 
@@ -102,21 +124,37 @@ class Servo360(PWM):
   def __init__(self, pin, serial_controller, pwm_range_L=[3700, 4700], pwm_range_R=[5070, 6070]):
     super().__init__(pin, serial_controller, [pwm_range_L[0], pwm_range_R[1]])
     self.angleQ = queue.Queue()
-    self.controllThread = threading.Thread(target=self.gyroThread)
-    self.controllThread.start()
 
     self.l_range = pwm_range_L
     self.r_range = pwm_range_R
 
+    self.rotating = False
+    self.rotation_stop_time = 0
+    self.current_rotation = 0
 
-  def rotateDeg(self, degrees, absolute=True):
+    self.controllThread = threading.Thread(target=self.gyroThread)
+    self.controllThread.start()
+
+
+  def rotateDeg(self, degrees):
     self.angleQ.put(degrees)
+
+
+  def rotateDeg_compensated(self, degrees, capture_time):
+    if self.rotating or (not self.rotating and capture_time < self.rotation_stop_time):
+      degrees -= self.current_rotation
+
+      self.rotateDeg(degrees)
+
+    else:
+      self.rotateDeg(degrees)
+
   
 
   def val2pw(self, val):
     if val > 0: #positive rotation (counter-clockwise)
       return self.l_range[1]-(self.l_range[1]-self.l_range[0])*abs(val)
-    else: #negative rotation (clockwise)
+    elif val < 0: #negative rotation (clockwise)
       return self.r_range[0]+(self.r_range[1]-self.r_range[0])*abs(val)
   
 
@@ -135,57 +173,51 @@ class Servo360(PWM):
     mpu = gyro.mpu()
     last_calibration_time = time.time()
 
-    current_rotation = 0
-
-    rotating = False
+    self.current_rotation = 0
 
     last_time = time.time()
 
     while True:
-      if rotating:
+      if self.rotating:
         try:
           angle = self.angleQ.get_nowait()
-          current_rotation = 0
+          self.current_rotation = 0
         except: pass
 
       else:
-        if time.time() - last_calibration_time > 60:
+        if time.time() - last_calibration_time > 180:
+          time.sleep(0.5)
           mpu.zeroGyro() # recalibrate after 1 minute
           last_calibration_time = time.time()
 
-        print("waiting")
         angle = self.angleQ.get()
 
-        current_rotation = 0
-        rotating = True
+        self.current_rotation = 0
+        self.rotating = True
 
       rotation_rate = mpu.getGyroZData()[ROTATING_AXIS]
       delta_time = time.time() - last_time
       delta_rotation = rotation_rate * delta_time
       last_time = time.time()
       
-      current_rotation += delta_rotation
+      self.current_rotation += delta_rotation
 
 
 
-      print(angle, current_rotation)
+      #print(angle, self.current_rotation)
       
-      if angle - ROTATION_ERROR < current_rotation < angle + ROTATION_ERROR: # desired angle reached
+      if angle - ROTATION_ERROR < self.current_rotation < angle + ROTATION_ERROR: # desired angle reached
         self.stop()
-        rotating = False
+        self.rotating = False
+        self.rotation_stop_time = time.time()
 
 
-      elif current_rotation < angle:
-        self.setVal(-1)
+      elif self.current_rotation < angle:
+        self.setVal(-0.8)
 
       else:
-        self.setVal(1)
+        self.setVal(0.8)
 
 
-
-#TODO REMOVE
-
-cont = Controller([1,1], 0, 1, 2)
-
-while True:
-  cont.xServo.rotateDeg(int(input(">")))
+c = Controller([1,1],0,1,2)
+c.xServo.rotateDeg(-30)

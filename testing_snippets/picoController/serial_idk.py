@@ -1,10 +1,10 @@
-import serial, time, sys
+import sys
 
+sys.path.append('../topTurret') #import from parent dir
+from packages import pico_serial_pwm
 
-s = serial.Serial('/dev/ttyACM0')
+pwm = pico_serial_pwm.Pico_serial_pwm('/dev/ttyACM0')
 
-s.write(b"abc\r")
 while True:
-    
-    r = s.read(1)
-    print(r)
+    inp = int(input("duty: "))
+    pwm.set_duty_cycle(0, inp)
