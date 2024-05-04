@@ -14,7 +14,7 @@ class Pico_serial_pwm():
     
 
     def send_duty_cycle(self, pin, duty):
-        s = f"w{pin}\r{duty}\r".encode()
+        s = f"w{pin}\r{int(duty)}\r".encode()
         self.port.write(s)
         self.port.flush()
 
