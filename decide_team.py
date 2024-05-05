@@ -143,6 +143,8 @@ def attack_enemy(servo_controller, last_frame_time, enemy, crosshair_coor):
 
 # SETUPS
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+run_visual = False
+
 # capture setup ----------------
 
 capture = 0#r"C:/Users/Jakub/Programming/Python/openCV/samples/randalls squad sample.mp4" # <--- set video capture (source)
@@ -207,7 +209,8 @@ while True: # Main loop !!!!!!
     
     detection = model(frame,stream=True) #detect objects in frame trough neural network
 
-    frame_out = np.copy(frame)
+    if run_visual: frame_out = np.copy(frame)
+
     people = np.empty((0,5))
 
     #find people in detected objects
@@ -249,13 +252,14 @@ while True: # Main loop !!!!!!
             if person_team.name in enemy_teams:
                 enemies = np.vstack((enemies,res))
             
-            # graphics for visual validation of data
-            cv.rectangle(frame_out,(x1,y1),(x2,y2),color,2)
-            cv.drawMarker(frame_out,center,color,cv.MARKER_CROSS,thickness=2)
-            cv.putText(frame_out,person_team.name,np.array([x1+10,y1-10]),cv.FONT_HERSHEY_SIMPLEX,1,color,2,cv.LINE_AA)
-            cv.putText(frame_out,str(int(Id)),np.array([x1,y2-10]),cv.FONT_HERSHEY_SIMPLEX,1,color,2,cv.LINE_AA)
+            if run_visual:
+                # graphics for visual validation of data
+                cv.rectangle(frame_out,(x1,y1),(x2,y2),color,2)
+                cv.drawMarker(frame_out,center,color,cv.MARKER_CROSS,thickness=2)
+                cv.putText(frame_out,person_team.name,np.array([x1+10,y1-10]),cv.FONT_HERSHEY_SIMPLEX,1,color,2,cv.LINE_AA)
+                cv.putText(frame_out,str(int(Id)),np.array([x1,y2-10]),cv.FONT_HERSHEY_SIMPLEX,1,color,2,cv.LINE_AA)
 
-            cv.drawMarker(frame_out,screencenter,(255,0,255),cv.MARKER_CROSS,50,2)
+                cv.drawMarker(frame_out,screencenter,(255,0,255),cv.MARKER_CROSS,50,2)
 
 
     if len(enemies) > 0: # aim at closest enemy to crosshair
@@ -263,10 +267,12 @@ while True: # Main loop !!!!!!
 
         attack_enemy(servo_controller, last_frame_time, closest_enemy, crosshair_coor)
 
-        cv.line(frame_out,closest_center,screencenter,(255,0,255),2,cv.LINE_AA)
-        cv.drawMarker(frame_out,closest_center,ids.get_id_from_ids(closest_enemy[4]).team.display_color,cv.MARKER_SQUARE,thickness=2)
+        if run_visual:
+            cv.line(frame_out,closest_center,screencenter,(255,0,255),2,cv.LINE_AA)
+            cv.drawMarker(frame_out,closest_center,ids.get_id_from_ids(closest_enemy[4]).team.display_color,cv.MARKER_SQUARE,thickness=2)
 
 
     ids.update()
-    cv.imshow("test",frame_out)
-    cv.waitKey(1)
+    if run_visual:
+        cv.imshow("test",frame_out)
+        cv.waitKey(1)

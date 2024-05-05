@@ -213,8 +213,8 @@ class Servo360(PWM):
 
 
       elif self.current_rotation < angle:
-        self.setVal(-0.5)
+        self.setVal(-0.3)
 
       else:
-        self.setVal(0.5)
+        self.setVal(0.3)
 
