@@ -9,10 +9,15 @@
             "name": "blue",
             "upper": [123,255,191],
             "lower": [106,174,52]
+        },
+        {
+            "name": "any",
+            "upper": [255,255,255],
+            "lower": [0,0,0]
         }
     ],
 
     "friendly":[],
-    "enemy":["blue", "red"]
+    "enemy":["blue", "red", "any"]
 }
 

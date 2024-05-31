@@ -167,7 +167,7 @@ class Servo360(PWM):
 
 
   def gyroThread(self):
-    ROTATING_AXIS = 2
+    ROTATING_AXIS = 1
     ROTATION_ERROR = 1
 
     mpu = gyro.mpu()
@@ -180,6 +180,7 @@ class Servo360(PWM):
     while True:
       if self.rotating:
         try:
+          raise #TODO: REMOVE
           angle = self.angleQ.get_nowait()
           self.current_rotation = 0
         except: pass
@@ -213,8 +214,8 @@ class Servo360(PWM):
 
 
       elif self.current_rotation < angle:
-        self.setVal(-0.3)
+        self.setVal(-0.25)
 
       else:
-        self.setVal(0.3)
+        self.setVal(0.25)
 

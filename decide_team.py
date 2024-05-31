@@ -127,7 +127,7 @@ def attack_enemy(servo_controller, last_frame_time, enemy, crosshair_coor):
 
     if dist <= abs(x1-x2)*KILL_DISTANCE and dist <= abs(y1-y2)*KILL_DISTANCE: # target in acceptable range to shoot
         # servo_controller.shoot()
-        print("SHOOT")
+        print("\033[33mSHOOT!\033[0m")
         pass
 
     else: #target not aimed at, perform aiming

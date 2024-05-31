@@ -3,7 +3,7 @@ import cv2 as cv
 
 class vCap():
     def __init__(self,source):
-        self.size = [1280,720]
+        self.size = [640,360] # [1280,720]
         self.mode = "pc"
         if source == 0:
             try: from picamera2 import Picamera2

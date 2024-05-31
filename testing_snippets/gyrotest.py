@@ -11,7 +11,7 @@ posX = 0
 startT = time.time()
 while True:
     data = mpu.getGyroZData()
-    posX += data[2]*(time.time()-startT) #deg/sec * deltaTime
+    posX += data[1]*(time.time()-startT) #deg/sec * deltaTime
     startT = time.time()
     os.system("clear")
     print()
