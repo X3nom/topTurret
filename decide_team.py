@@ -3,7 +3,6 @@ import numpy as np
 from ultralytics import YOLO
 from threading import Thread
 import time
-import platform
 from packages import sort
 from packages.rpiControll import Cam
 from packages import team_json_loader

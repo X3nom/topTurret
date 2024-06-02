@@ -1,8 +1,8 @@
 import json
 
 class TeamConfig():
-    def __init__(self) -> None:
-        self.fPath = "config/teams.json"
+    def __init__(self, fPath = "config/teams.json") -> None:
+        self.fPath = fPath
         with open(self.fPath, "r") as f:
             self.teams_dict = json.load(f)
     
@@ -22,4 +22,4 @@ class TeamConfig():
         return enemy
 
 
-tc = TeamConfig()
+# tc = TeamConfig()
