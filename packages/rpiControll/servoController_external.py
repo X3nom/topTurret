@@ -79,7 +79,7 @@ class PWM():
     thread.start()
 
   def _pulse_thread(self, val, pulse_time):
-    self.setVal(value)
+    self.setVal(val)
     time.sleep(pulse_time)
     self.stop()
 
@@ -203,7 +203,6 @@ class Servo360(PWM):
 
 
 
-      #print(angle, self.current_rotation)
       
       if angle - ROTATION_ERROR < self.current_rotation < angle + ROTATION_ERROR: # desired angle reached
         self.stop()
