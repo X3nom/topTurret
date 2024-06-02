@@ -64,11 +64,16 @@ while True:
     frame = cap.read()
 
     hsvFrame = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
+
+    hsvFrame_equ = hsvFrame.copy()
+    hsvFrame_equ[:, :, 2] = cv.equalizeHist(hsvFrame_equ[:, :, 2]) #EQUALIZE
+
+    equalised_rgb = cv.cvtColor(hsvFrame_equ, cv.COLOR_HSV2BGR)
     
     mask = cv.inRange(hsvFrame, np.array(colRange[0]), np.array(colRange[1]))
     invMask = cv.bitwise_not(mask)
 
-    outFrame = cv.bitwise_and(frame, frame, mask=mask)
+    outFrame = cv.bitwise_and(equalised_rgb, frame, mask=mask)
     
     underlay = np.zeros(frame.shape)
     underlay[:] = (0,0,255)
