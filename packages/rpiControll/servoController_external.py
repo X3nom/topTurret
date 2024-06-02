@@ -21,7 +21,7 @@ class Controller():
     # self.serial_controller.init_threaded()
 
     self.xServo = Servo360(xServoPin, self.serial_controller)
-    self.yServo = Servo180(yServoPin, self.serial_controller)
+    self.yServo = Servo180(yServoPin, self.serial_controller, [-30,30])
     self.trigger = PWM(triggerPin, self.serial_controller)
 
   
@@ -31,7 +31,7 @@ class Controller():
 
     # perform rotation
     self.xServo.rotateDeg_compensated(movement_deg_vec[0], measure_delta_time)
-    # self.yServo.rotateDeg(movement_deg_vec[1]) TODO: UNCOMMENT
+    self.yServo.rotateDeg(movement_deg_vec[1]*-1)
 
 
   def shoot(self):
@@ -88,9 +88,9 @@ class PWM():
 
 
 class Servo180(PWM):
-  def __init__(self, pin, serial_controller, pwmRange=[3700, 6070]):
+  def __init__(self, pin, serial_controller, angle_range=[0,180], pwmRange=[3700, 6070]):
     super().__init__(pin, serial_controller, pwmRange)
-    self.angle_range = [0,180]
+    self.angle_range = angle_range #[0,180]
     self.angle = (self.angle_range[1]-self.angle_range[0])/2
     
     self.rotating = False
@@ -101,21 +101,19 @@ class Servo180(PWM):
     if absolute:
       self.angle = degrees
     else:
-      if self.angle_range[0] > self.angle+degrees:
-        self.angle = self.angle_range[0]
+      self.angle = self.angle + degrees
 
-      elif self.angle_range[1] < self.angle+degrees:
-        self.angle = self.angle_range[1]
-
-      else:
-        self.angle = self.angle + degrees
-
+    if self.angle_range[0] > self.angle+degrees:
+      self.angle = self.angle_range[0]
+    elif self.angle_range[1] < self.angle+degrees:
+      self.angle = self.angle_range[1]
 
     self.setVal(self.deg2val(self.angle))
 
 
   def deg2val(self, degress):
-    val = (degress/(self.angle_range[1] - self.angle_range[0]))*2-1
+    val = ((degress-self.angle_range[0])/(self.angle_range[1] - self.angle_range[0]))*2-1
+    return val
 
 
 
