@@ -38,8 +38,8 @@ while True:
         
     cv.imshow("origin", frame)
     cv.imshow("equ", norm_frame)
-    cv.imshow("mask",mask)
-    cv.imshow("orig mask",ormask)
+    # cv.imshow("mask",mask)
+    # cv.imshow("orig mask",ormask)
     cv.waitKey(1)
 
     '''
