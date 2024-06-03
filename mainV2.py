@@ -43,7 +43,8 @@ class VideoProcessor():
 if __name__ == "__main__":
 
     
-    vid_process = VideoProcessor()
+    vid_process = VideoProcessor(0)
+
 
 
 
