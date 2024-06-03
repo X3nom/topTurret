@@ -6,6 +6,26 @@ sys.path.append('../topTurret') #import from parent dir
 
 from packages.rpiControll import Cam
 
+
+def onMouse(event, x, y, flags, param):
+    global track_window, roi, hsv_roi, roi_hist
+
+    if event == cv.EVENT_LBUTTONDOWN:
+        track_window = (x,y,100,100)
+
+        roi = frame[track_window[1]:track_window[1]+track_window[3], track_window[0]:track_window[0]+track_window[2]]
+        hsv_roi = cv.cvtColor(roi, cv.COLOR_BGR2HSV)
+        mask = cv.inRange(hsv_roi, np.array((0., 60.,32.)), np.array((180.,255.,255.)))
+        roi_hist = cv.calcHist([hsv_roi],[0],mask,[180],[0,180])
+        cv.normalize(roi_hist,roi_hist,0,255,cv.NORM_MINMAX)
+
+
+
+cv.namedWindow('img')
+cv.setMouseCallback('img',onMouse)
+
+
+
 cap = Cam.vCap(0)
 
 frame = cap.read()
@@ -21,7 +41,7 @@ roi_hist = cv.calcHist([hsv_roi],[0],mask,[180],[0,180])
 cv.normalize(roi_hist,roi_hist,0,255,cv.NORM_MINMAX)
  
 # Setup the termination criteria, either 10 iteration or move by at least 1 pt
-term_crit = ( cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 100, 1 )
+term_crit = ( cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 1 )
  
 while(1):
     frame = cap.read()
@@ -36,5 +56,5 @@ while(1):
     pts = cv.boxPoints(ret)
     pts = np.int0(pts)
     img2 = cv.polylines(frame,[pts],True, 255,2)
-    cv.imshow('img2',img2)
+    cv.imshow('img',img2)
     cv.waitKey(1)
