@@ -45,12 +45,15 @@ class Tracker():
                 x1, y1, x2, y2 = box.xyxy[0]
                 x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
                 if int(box.cls[0]) == 0 and len(frame[y1:y2,x1:x2]) > 0:
+                    #TODO: check ID based on n of lk keypoints inside (id=id of most frequent keypoints inside box)
+
+                    '''
                     person_arr = np.array([x1,y1,x2,y2,box.conf[0].cpu().numpy()]) #get data about detection into format required by sort
                     people = np.vstack((people,person_arr))
 
         sort_ret = self.sort.update(people) #sends data about detections to sort, sort tryes to associate people from previous frames with new detections gives them IDs
-
-        for res in sort_ret:
+        '''
+        for res in sort_ret: #TODO: implement own "sort" based on lk
             x1,y1,x2,y2,Id = res
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
 
@@ -74,9 +77,13 @@ class Tracker():
 
             if id not in lk_keys or len(self.lk.p0[id]) < -1: # if id does not exist or has less than n keypoints existing, find new features
                 self.lk.find_good_features_in_area(frame, self.found_people[id].box, id)
+
     
     def run_lk(self, frame, draw_frame=None):
         self.lk.run(frame, draw_frame=draw_frame)
+
+    
+    #TODO: implement a way to destroy person objects when not found (ttl or no kp left?)
 
 
 
@@ -141,7 +148,7 @@ class LucasKanade():
 
 
     
-    def find_good_features_in_area(self, frame, area, id=-1): # IDK WHAT THE FUCK AM I DOING
+    def find_good_features_in_area(self, frame, area, id=-1):
         frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
         mask = np.zeros([frame.shape[0], frame.shape[1], 1], np.uint8)
@@ -164,6 +171,8 @@ class LucasKanade():
     
 
     def find_box(self, id):
+        #TODO: find smallest box fitting all kp of specified id
+        #TODO: throw away keypoints that are far from others
         kp = self.p0[id]
 
 
