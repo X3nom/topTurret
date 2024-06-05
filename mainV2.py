@@ -6,6 +6,7 @@ import time
 from packages import sort
 from packages.rpiControll import Cam
 from packages import team_json_loader
+from types import NoneType
 
 try: from packages.rpiControll import servoController_external as servoController
 except: print("servo controll could not be loaded")
@@ -97,57 +98,60 @@ class LucasKanade():
         self.old_gray = cv.cvtColor(old_frame, cv.COLOR_BGR2GRAY)
 
         # self.p0 = cv.goodFeaturesToTrack(self.old_gray, mask = None, **self.feature_params)
-        self.p0 = np.ndarray((0,1,2))
+        
+        self.p0 = {-1 : cv.goodFeaturesToTrack(self.old_gray, mask = None, **self.feature_params)} # np.ndarray((0,1,2))
+        self.areas = {-1 : [0, 0, self.old_gray.shape[0], self.old_gray.shape[1]]}
+
         # print(self.p0)
 
 
-    def run(self, frame):
+    def run(self, frame, draw_frame=None):
         self.frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
-        if len(self.p0) < 30: self.p0 = cv.goodFeaturesToTrack(self.old_gray, mask = None, **self.feature_params) #if not enough points, find new features
-        
-        # calculate optical flow
-        self.p1, st, err = cv.calcOpticalFlowPyrLK(self.old_gray, self.frame_gray, self.p0, None, **self.lk_params)
-        
-        # Select good points
-        if self.p1 is not None:
-            good_new = self.p1[st==1]
-            good_old = self.p0[st==1]
-        
+        for id in self.p0.keys():
 
-        for pt in good_new:
-            x, y = pt
-            cv.circle(frame, [int(x), int(y)], 3, (255, 0, 255), 2)
+            if len(self.p0[id]) < 1: self.find_good_features_in_area(self.frame, self.areas[id], id)  # self.p0[id] = cv.goodFeaturesToTrack(self.old_gray, mask = None, **self.feature_params) #if not enough points, find new features
+            
+            # calculate optical flow
+            p1, st, err = cv.calcOpticalFlowPyrLK(self.old_gray, self.frame_gray, self.p0[id], None, **self.lk_params)
+            
+            # Select good points
+            if p1 is not None:
+                good_new = p1[st==1]
+                good_old = self.p0[id][st==1]
+            
 
-        # Now update the previous frame and previous points
-        self.old_gray = self.frame_gray.copy()
-        self.p0 = good_new.reshape(-1, 1, 2)
+            if type(draw_frame) != NoneType:
+                for pt in good_new:
+                    x, y = pt
+                    cv.circle(draw_frame, [int(x), int(y)], 3, (255, 0, 255), 2)
+
+            # Now update the previous frame and previous points
+            self.old_gray = self.frame_gray.copy()
+            self.p0[id] = good_new.reshape(-1, 1, 2)
 
 
 
     
-    def find_good_features_in_area(self, frame, area): # IDK WHAT THE FUCK AM I DOING
-        slice = frame[area[1]:area[3],area[0]:area[2]]
-        slice_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    def find_good_features_in_area(self, frame, area, id=-1): # IDK WHAT THE FUCK AM I DOING
+        frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
-        cv.imshow("slice",slice)
-        cv.waitKey(1)
-        found_p = cv.goodFeaturesToTrack(slice_gray, mask = None, **self.feature_params)
-        
-        for f in found_p:
-            f[0][0] += area[0]
-            f[0][1] += area[1]
+        mask = np.zeros([frame.shape[0], frame.shape[1], 1], np.uint8)
 
-        if found_p is not None:
-        # Adjust the points, because they are relative to the slice
-            found_p = found_p + np.array([area[0], area[1]], dtype=np.float32).reshape(-1, 1, 2)
+        mask[area[1]:area[3],area[0]:area[2]] = 255
+        # cv.imshow("mask",mask)
+        # cv.waitKey(1)
+
+        found_p = cv.goodFeaturesToTrack(frame_gray, mask=mask, **self.feature_params)
         
-        # Append found_p to self.p0
-        if self.p0 is not None:
-            self.p0 = np.concatenate((self.p0, found_p), axis=0)
-        else:
-            self.p0 = found_p
         
+        try:
+            self.p0[id] = found_p
+            self.areas[id] = area
+        except:
+            self.p0.update({id, found_p})
+            self.areas.update({id, area})
+
         # print(self.p0)
 
 
@@ -159,10 +163,11 @@ class LucasKanade():
 if __name__ == "__main__":
 
     
-    vid_process = VideoProcessor(1)
+    vid_process = VideoProcessor(0)
 
     lk = LucasKanade(vid_process.frame)
-    lk.find_good_features_in_area(vid_process.frame, [0,300,100,400])
+    lk.find_good_features_in_area(vid_process.frame, [0,300,100,400], -1)
+    lk.find_good_features_in_area(vid_process.frame, [600,200,800,400], 0)
 
     teams_config = team_json_loader.TeamConfig()
     # teams_config.
@@ -171,11 +176,12 @@ if __name__ == "__main__":
     # MAIN LOOP ------------
     while True:
         vid_process.next_frame()
+        draw_frame = vid_process.frame.copy()
 
         # vid_process.run_yolo(vid_process.frame)
-        lk.run(vid_process.frame)
+        lk.run(vid_process.frame, draw_frame)
 
         
 
-        cv.imshow("window", vid_process.frame)
+        cv.imshow("window", draw_frame)
         cv.waitKey(1)
