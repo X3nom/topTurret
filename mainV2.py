@@ -21,8 +21,8 @@ class Person():
         self.box = box
         self.team = "Unknown" #defalut team
         self.team_occurencies = {self.team:0}
-        self.p0 = np.ndarray([0,1,2])
-        self.ttl = 6000
+        self.p0 = np.ndarray([0,1,2]) # init with empty array of desired shape; holds keypoints found on person
+        self.ttl = 6000 # time to live
 
     
     
@@ -61,47 +61,11 @@ class Tracker():
                 box_center = [x1+(x1-x2)//2, y1+(y1-y2)//2]  # calculate box center
 
                 if int(box.cls[0]) == 0 and len(frame[y1:y2,x1:x2]) > 0:
-                    '''
-                    #TODO: check Id based on n of lk keypoints insIde (Id=Id of most frequent keypoints insIde box)
-                    closest_center = np.array([-1,-1])
-                    closest_dst = -1
-                    closest_Id = -1
-                    for Id in self.found_people.keys():
-                        center_of_mass = self.lk.calculate_center_of_mass(Id)[0] # find closest average point with Id to the box
-                        
-
-                        if math.sqrt( (box_center[0]-center_of_mass[0])**2 + (box_center[1]-center_of_mass[1])**2 ) < closest_dst or closest_dst == -1:
-                            closest_center = center_of_mass
-                            closest_dst = math.sqrt( (box_center[0]-center_of_mass[0])**2 + (box_center[1]-center_of_mass[1])**2 )
-                            closest_Id = Id
-
-                    if closest_center[0] > x1 and closest_center[0] < x2 and closest_center[1] > y1 and closest_center[1] < y2: # if closest Id point is insIde box
-                        person_arr = np.array([x1,y1,x2,y2,closest_Id])
-                        people = np.vstack((people,person_arr))
-
-                    
-                    else:
-                        random_Id = 0
-                        while random_Id in self.found_people.keys(): random_Id += 1 #iterate until not taken Id is found
-                        person_arr = np.array([x1,y1,x2,y2,random_Id])
-                        people = np.vstack((people,person_arr))
-                        '''
                     
                     person_arr = np.array([x1,y1,x2,y2,box.conf[0].cpu().numpy()]) #get data about detection into format required by sort
                     people = np.vstack((people,person_arr))
 
-                    '''
-        for person in people:
-            x1,y1,x2,y2,Id = person
-            x1, y1, x2, y2, Id = int(x1), int(y1), int(x2), int(y2), int(Id)
 
-            try: # try to update box or add person if not yet found
-                self.found_people[Id].box = [x1, y1, x2, y2]
-            except:
-                self.found_people.update({Id : Person(Id, [x1, y1, x2, y2])})
-                self.lk.find_good_features_in_area(frame, self.found_people[Id].box, Id)
-
-        '''
         sort_ret = self.sort.update(people) #sends data about detections to sort, sort tryes to associate people from previous frames with new detections gives them IDs
         
         for res in sort_ret:
@@ -136,11 +100,13 @@ class Tracker():
     
 
     def update_boxes(self):
+        #TODO: maybe take previous box size into account
         for Id in self.found_people.keys():
             self.found_people[Id].box = self.lk.find_box(Id)
 
     
     def merge_people(self, Id, Id2):
+        #TODO: merge two person objects under single Id, merge points, teams, ...;    for use when two "centers of mass" are too close together
         pass
 
     
@@ -151,7 +117,7 @@ class Tracker():
 
 
 class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
-    def __init__(self, frame, people, track_full_frame=True) -> None:
+    def __init__(self, frame, people) -> None:
 
         self.people = people
 
@@ -172,17 +138,6 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
         old_frame = frame
         self.old_gray = cv.cvtColor(old_frame, cv.COLOR_BGR2GRAY)
 
-        # self.p0 = cv.goodFeaturesToTrack(self.old_gray, mask = None, **self.feature_params)
-        '''
-        if track_full_frame:
-            self.p0 = {-1 : cv.goodFeaturesToTrack(self.old_gray, mask = None, **self.feature_params)} # np.ndarray((0,1,2))
-            self.areas = {-1 : [0, 0, self.old_gray.shape[0], self.old_gray.shape[1]]}
-        else:
-            self.p0 = {}
-            self.areas = {}
-        '''
-
-        # print(self.p0)
 
 
     def run(self, frame, draw_frame=None, dump_empty = True):
@@ -195,7 +150,7 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
                     #TODO: Idk if this should be included even, probably just add some flag
                     continue
                     
-                else: self.find_good_features_on_person(self.frame_gray, person.Id)  # self.p0[Id] = cv.goodFeaturesToTrack(self.old_gray, mask = None, **self.feature_params) #if not enough points, find new features
+                else: self.find_good_features_on_person(self.frame_gray, person.Id)
             
             # calculate optical flow
             p1, st, err = cv.calcOpticalFlowPyrLK(self.old_gray, self.frame_gray, person.p0, None, **self.lk_params)
@@ -231,7 +186,7 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
 
         mask[person.box[1]:person.box[3],person.box[0]:person.box[2]] = 255
 
-        found_p = cv.goodFeaturesToTrack(frame_gray, mask=mask, **self.feature_params)
+        found_p = cv.goodFeaturesToTrack(frame_gray, mask=mask, **self.feature_params) #! has to have None return handeled
         if found_p is None: found_p = np.ndarray((0,1,2))
         
         person.p0 = found_p
@@ -245,7 +200,6 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
 
 
     def find_box(self, Id):
-        #TODO: throw away keypoints that are far from others
         kp = self.people[Id].p0
         if len(kp) == 0: return [0, 0, 0, 0]
         top_left = np.min(kp, 0)[0]
@@ -254,11 +208,12 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
     
 
     def filter_stray_points(self, Id):
+        #TODO: throw away keypoints that are far from others
         pass
 
 
 
-
+#TODO: add TeamDetector class (integrate color treshold/blob detection algorithm)
 
 
 
