@@ -120,6 +120,7 @@ class KalmanBoxTracker(object):
     self.hits = 0
     self.hit_streak = 0
     self.age = 0
+    self.popped = False
 
   def update(self,bbox):
     """
@@ -230,6 +231,7 @@ class Sort(object):
         to_del.append(t)
     trks = np.ma.compress_rows(np.ma.masked_invalid(trks))
     for t in reversed(to_del):
+      self.trackers[t].popped = True
       self.trackers.pop(t)
     matched, unmatched_dets, unmatched_trks = associate_detections_to_trackers(dets,trks, self.iou_threshold)
 
@@ -249,6 +251,7 @@ class Sort(object):
         i -= 1
         # remove dead tracklet
         if(trk.time_since_update > self.max_age):
+          self.trackers[t].popped = True
           self.trackers.pop(i)
     if(len(ret)>0):
       return np.concatenate(ret)

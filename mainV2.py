@@ -16,13 +16,14 @@ except: print("servo controll could not be loaded")
 
 
 class Person():
-    def __init__(self, Id, box) -> NoneType:
+    def __init__(self, Id, box, sort_reference) -> NoneType:
         self.Id = Id
         self.box = box
         self.team = "Unknown" #defalut team
         self.team_occurencies = {self.team:0}
         self.p0 = np.ndarray([0,1,2]) # init with empty array of desired shape; holds keypoints found on person
         self.ttl = 6000 # time to live
+        self.sort_reference = sort_reference
 
     
     
@@ -38,11 +39,11 @@ class Person():
 class Tracker():
     def __init__(self, init_frame, model='./Yolo_weights/yolov8n.pt') -> None:      
         self.model = YOLO(model) # load up neural network model
-        self.sort = sort.Sort(30,1) # load Sort for indexing
+        self.sort = sort.Sort(10,1) # load Sort for indexing
 
         self.found_people = {}
 
-        self.lk = LucasKanade(init_frame, self.found_people, track_full_frame=False)
+        self.lk = LucasKanade(init_frame, self.found_people)
 
 
 
@@ -70,13 +71,14 @@ class Tracker():
         
         for res in sort_ret:
             x1,y1,x2,y2,Id = res
-            x1, y1, x2, y2, Id = int(x1), int(y1), int(x2), int(y2), int(Id)
+            x1, y1, x2, y2, Id = int(x1), int(y1), int(x2), int(y2), int(Id-1)
 
 
             try: # try to update box or add person if not yet found
                 self.found_people[Id].box = [x1, y1, x2, y2]
             except:
-                self.found_people.update({Id : Person(Id, [x1, y1, x2, y2])})
+                sort_reference = list(filter(lambda x:x.id==Id, self.sort.trackers))[0]
+                self.found_people.update({Id : Person(Id, [x1, y1, x2, y2], sort_reference)})
                 self.lk.find_good_features_on_person(frame, Id)
 
 
@@ -100,7 +102,7 @@ class Tracker():
     
 
     def update_boxes(self):
-        #TODO: maybe take previous box size into account
+        #TODO: maybe take previous box size into account (kalman filter?)
         for Id in self.found_people.keys():
             self.found_people[Id].box = self.lk.find_box(Id)
 
