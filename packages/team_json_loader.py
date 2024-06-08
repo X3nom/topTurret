@@ -20,6 +20,9 @@ class TeamConfig():
         for name in self.teams_dict["enemy"]:
             enemy.append(*list(filter(lambda team: team['name'] == name, self.teams_dict["teams"])))
         return enemy
+    
+    def get_enemy_names(self):
+        return self.teams_dict["enemy"]
 
 
 # tc = TeamConfig()

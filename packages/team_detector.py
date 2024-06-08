@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 import sys
-from rpiControll import Cam
+from rpiControll import Cam #TODO: RM
 
 
 class TeamDetector():
@@ -34,18 +34,29 @@ class TeamDetector():
 
         self.teams = teams
     
+
+
     def detect_team(self, img):
+        MIN_SIZE_TO_DETECTION_SIZE = 1/100
         hsv_img = cv.cvtColor(img,cv.COLOR_BGR2HSV)
+        total_size = img.shape[0] * img.shape[1] # used for armband size to detection size ratio
 
         for team in self.teams:
+            # get color in range
             mask = cv.inRange(hsv_img, np.array(team["lower"]), np.array(team["upper"]))
+
             #correct for small imperfections
             mask = cv.GaussianBlur(mask, (9,9), 0)
             mask[mask!=0] = 255
 
             #mask = cv.cvtColor(mask, cv.COLOR_GRAY2BGR)
-
+            # find blobs
             keypoints = self.blob_detector.detect(mask)
+
+            for kp in keypoints: #filter out god kp
+
+
+
 
 
 

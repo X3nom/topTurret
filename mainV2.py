@@ -6,11 +6,16 @@ import time
 from packages import sort
 from packages.rpiControll import Cam
 from packages import team_json_loader
+# from packages import team_detector
 from types import NoneType
 import math
 
-try: from packages.rpiControll import servoController_external as servoController
-except: print("servo controll could not be loaded")
+try: 
+    from packages.rpiControll import servoController_external as servoController
+    servo_loaded = True
+except:
+    print("servo controll could not be loaded")
+    servo_loaded = False
 
 
 
@@ -26,6 +31,7 @@ class Person():
         # self.box_mass_center = ((box[0]-box[2])//2, (box[1]-box[3])//2)
         # self.ttl = 10 # time to live
         self.sort_reference = sort_reference # used for checking if detection is still "alive"
+        self.aim_locked = False
 
     
     
@@ -46,6 +52,10 @@ class Tracker():
         self.found_people = {}
 
         self.lk = LucasKanade(init_frame, self.found_people)
+
+        self.crosshair_pos = ((init_frame.shape)[0]//2, (init_frame.shape)[0]//2)
+
+        # self.team_detector = team_detector.TeamDetector(teams)
 
 
 
@@ -162,6 +172,20 @@ class Tracker():
     
     #TODO: implement a way to destroy person objects when not found (ttl or no kp left?)
 
+    def find_closest_enemy(self, enemy_teams_names) -> Person:
+        closest = None
+        
+        for person in self.found_people.values():
+            person.locked = False
+            if person.team in enemy_teams_names:
+                if closest is None:
+                    closest = person
+                elif np.linalg.norm(movement_vector(self.crosshair_pos, person.center_of_mass)) < np.linalg.norm(movement_vector(self.crosshair_pos, closest.center_of_mass)): # compare distances to crosshair of closest and current person
+                    closest = person
+        
+        if closest is not None: closest.locked = True
+        return closest
+
 
 
 
@@ -216,14 +240,15 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
                 for pt in good_new:
                     x, y = pt
                     cv.circle(draw_frame, [int(x), int(y)], 3, (255, 0, 255), 2)
-                center = self.calculate_center_of_mass(person.Id)
-                cv.circle(draw_frame, [int(x) for x in center[0]], 5, (0,0,255), 3)
+                # center = self.calculate_center_of_mass(person.Id)
+                cv.circle(draw_frame, person.center_of_mass, 5, (0,0,255), 3)
 
                 cv.rectangle(draw_frame, [person.box[0], person.box[1]], [person.box[2], person.box[3]], (255, 0, 0), 1)
 
 
             # Now update the previous frame and previous points
             person.p0 = good_new.reshape(-1, 1, 2)
+            person.center_of_mass = tuple(map(int, self.calculate_center_of_mass(person.Id)[0]))
         self.old_gray = self.frame_gray.copy()
 
 
@@ -287,6 +312,14 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
 
 
 
+def movement_vector(cor1, cor2):
+    cor1, cor2 = np.array(cor1), np.array(cor2)
+    vec = cor1 - cor2
+    return vec
+
+
+    
+
 
 #TODO: add TeamDetector class (integrate color treshold/blob detection algorithm)
 
@@ -294,21 +327,25 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
 
 
 if __name__ == "__main__":
+    
     vCap = Cam.vCap(0)
     
     frame = vCap.read()
     
     tracker = Tracker(frame)
 
-    
 
     teams_config = team_json_loader.TeamConfig()
     # teams_config.
     
 
+    if servo_loaded: controller = servoController.Controller(frame.shape, 0, 1, 2)
+
+
     # MAIN LOOP ------------
     iteration = 0
     while True:
+        capture_t = time.time()
         frame = vCap.read()
         draw_frame = frame.copy()
 
@@ -328,7 +365,14 @@ if __name__ == "__main__":
         # tracker.run_yolo(tracker.frame)
         # lk.run(tracker.frame, draw_frame)
 
-        
+
+        closest_enemy = tracker.find_closest_enemy(["Unknown"])
+
+        if servo_loaded and closest_enemy is not None:
+
+            controller.aim(tracker.crosshair_pos, closest_enemy.center_of_mass, time.time()-capture_t)
+
+
 
         cv.imshow("window", draw_frame)
         cv.waitKey(1)
