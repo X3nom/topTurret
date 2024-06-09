@@ -47,7 +47,7 @@ class Person():
 class Tracker():
     def __init__(self, init_frame, model='./Yolo_weights/yolov8n.pt') -> None:      
         self.model = YOLO(model) # load up neural network model
-        self.sort = sort.Sort(10,1) # load Sort for indexing
+        self.sort = sort.Sort(1,1) # load Sort for indexing
 
         self.found_people = {}
 
@@ -178,6 +178,7 @@ class Tracker():
         for person in self.found_people.values():
             person.locked = False
             if person.team in enemy_teams_names:
+                if person.center_of_mass == [[-1, -1]]: continue
                 if closest is None:
                     closest = person
                 elif np.linalg.norm(movement_vector(self.crosshair_pos, person.center_of_mass)) < np.linalg.norm(movement_vector(self.crosshair_pos, closest.center_of_mass)): # compare distances to crosshair of closest and current person
@@ -274,7 +275,9 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
 
 
     def calculate_center_of_mass(self, Id):
-        avg = np.mean(self.people[Id].p0, 0)
+        if len(self.people[Id].p0) != 0: avg = np.mean(self.people[Id].p0, 0)
+        else: avg = [[-1,-1]]
+        
         return avg
 
 
