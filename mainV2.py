@@ -170,7 +170,6 @@ class Tracker():
         person.p0 = np.vstack([person.p0, to_merge_person.p0]) # WIP
 
     
-    #TODO: implement a way to destroy person objects when not found (ttl or no kp left?)
 
     def find_closest_enemy(self, enemy_teams_names) -> Person:
         closest = None
@@ -191,7 +190,7 @@ class Tracker():
 
 
 
-class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
+class LucasKanade():
     def __init__(self, frame, people) -> None:
 
         self.people = people
@@ -215,17 +214,13 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
 
 
 
-    def run(self, frame, draw_frame=None, dump_empty = True):
+    def run(self, frame, draw_frame=None):
         self.frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
         for person in self.people.values():
 
             if len(person.p0) < 1:
-                if dump_empty:
-                    #TODO: Idk if this should be included even, probably just add some flag
-                    continue
-                    
-                else: self.find_good_features_on_person(self.frame_gray, person.Id)
+                self.find_good_features_on_person(self.frame_gray, person.Id)
             
             # calculate optical flow
             p1, st, err = cv.calcOpticalFlowPyrLK(self.old_gray, self.frame_gray, person.p0, None, **self.lk_params)
@@ -291,7 +286,6 @@ class LucasKanade(): #TODO: rewrite to use person objects instead of p0 dict
     
 
     def filter_outliers(self, Id):
-        #TODO: throw away keypoints that are far from others
         ALLOWED_DEVIATION = 0.5
         p0 = self.people[Id].p0
         mean = np.mean(p0, 0)
@@ -329,7 +323,9 @@ def movement_vector(cor1, cor2):
 
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
+
+    # TODO: fix detection not running propertly on rpi when first detection has none people
     
     vCap = Cam.vCap(0)
     
@@ -354,7 +350,7 @@ if __name__ == "__main__":
         frame = vCap.read()
         draw_frame = frame.copy()
 
-        if iteration % 600 == 0:
+        if iteration % 300 == 0:
             tracker.find_people(frame)
             tracker.update_lk_features(frame, force_update=True)
 
@@ -371,11 +367,13 @@ if __name__ == "__main__":
         # lk.run(tracker.frame, draw_frame)
 
 
-        closest_enemy = tracker.find_closest_enemy(["Unknown"])
+        if iteration%10 == 0: closest_enemy = tracker.find_closest_enemy(["Unknown"])
 
-        if servo_loaded and closest_enemy is not None:
+        if servo_loaded and closest_enemy is not None and closest_enemy.center_of_mass != [-1, -1]:
 
             controller.aim(tracker.crosshair_pos, closest_enemy.center_of_mass, time.time()-capture_t)
+
+            cv.line(draw_frame, tracker.crosshair_pos, closest_enemy.center_of_mass, (255, 0, 255), 1)
 
 
 

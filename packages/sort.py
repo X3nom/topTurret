@@ -251,7 +251,7 @@ class Sort(object):
         i -= 1
         # remove dead tracklet
         if(trk.time_since_update > self.max_age):
-          self.trackers[t].alive = True
+          self.trackers[i].alive = True
           self.trackers.pop(i)
     if(len(ret)>0):
       return np.concatenate(ret)

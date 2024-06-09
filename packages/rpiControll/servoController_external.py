@@ -111,6 +111,8 @@ class Servo180(PWM):
 
     self.setVal(self.deg2val(self.angle))
 
+    # TODO: rotateDeg_compensated
+
 
   def deg2val(self, degress):
     val = ((degress-self.angle_range[0])/(self.angle_range[1] - self.angle_range[0]))*2-1
