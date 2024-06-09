@@ -53,14 +53,14 @@ class Tracker():
 
         self.lk = LucasKanade(init_frame, self.found_people)
 
-        self.crosshair_pos = ((init_frame.shape)[0]//2, (init_frame.shape)[0]//2)
+        self.crosshair_pos = ((init_frame.shape)[0]//2, (init_frame.shape)[1]//2)
 
         # self.team_detector = team_detector.TeamDetector(teams)
 
 
 
 
-    def find_people(self, frame):
+    def find_people(self, frame, draw_frame=None): # TODO: probably execute this on second thread
         'run YOLO'
         detection = self.model.predict(frame, True)
         people = np.empty((0,5))
@@ -98,10 +98,10 @@ class Tracker():
             # self.lk.filter_outliers(Id) #TODO: RM
 
 
-            if True:
+            if draw_frame is not None:
                 # graphics for visual valIdation of data
-                cv.rectangle(frame,(x1,y1),(x2,y2),(255,0,255),2)
-                cv.putText(frame,str(int(Id)),np.array([x1,y2-10]),cv.FONT_HERSHEY_SIMPLEX,1,(255,0,255),2,cv.LINE_AA)
+                cv.rectangle(draw_frame,(x1,y1),(x2,y2),(255,0,255),2)
+                cv.putText(draw_frame,str(int(Id)),np.array([x1,y2-10]),cv.FONT_HERSHEY_SIMPLEX,1,(255,0,255),2,cv.LINE_AA)
         
         self.delete_expired_people()
         
@@ -142,6 +142,12 @@ class Tracker():
 
         for Id in keys:
             box = self.lk.find_box(Id)
+            if box == [0,0,0,0]:
+                self.found_people[Id].box = box
+                self.found_people[Id].center_of_mass = (-1,-1)
+                continue
+
+
             box_size = (box[2]-box[0], box[3]-box[1])
             old_box = self.found_people[Id].box
             old_box_size = (old_box[2]-old_box[0], old_box[3]-old_box[1])
@@ -177,7 +183,7 @@ class Tracker():
         for person in self.found_people.values():
             person.locked = False
             if person.team in enemy_teams_names:
-                if person.center_of_mass == [[-1, -1]]: continue
+                if person.center_of_mass == (-1, -1): continue
                 if closest is None:
                     closest = person
                 elif np.linalg.norm(movement_vector(self.crosshair_pos, person.center_of_mass)) < np.linalg.norm(movement_vector(self.crosshair_pos, closest.center_of_mass)): # compare distances to crosshair of closest and current person
@@ -209,7 +215,7 @@ class LucasKanade():
         
         
         # Take first frame and find corners in it
-        old_frame = frame
+        old_frame = frame.copy()
         self.old_gray = cv.cvtColor(old_frame, cv.COLOR_BGR2GRAY)
 
 
@@ -223,8 +229,10 @@ class LucasKanade():
                 self.find_good_features_on_person(self.frame_gray, person.Id)
             
             # calculate optical flow
-            p1, st, err = cv.calcOpticalFlowPyrLK(self.old_gray, self.frame_gray, person.p0, None, **self.lk_params)
-            
+            if len(person.p0) > 0:
+                p1, st, err = cv.calcOpticalFlowPyrLK(self.old_gray, self.frame_gray, person.p0, None, **self.lk_params)
+            else: p1 = None
+
             # Select good points
             if p1 is not None:
                 good_new = p1[st==1]
@@ -254,7 +262,9 @@ class LucasKanade():
         try: person = self.people[Id]
         except: return -1
 
-        frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        if len(frame.shape) == 3:
+            frame_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        else: frame_gray = frame
 
         mask = np.zeros([frame.shape[0], frame.shape[1], 1], np.uint8)
 
@@ -326,6 +336,7 @@ def movement_vector(cor1, cor2):
 if __name__ == "__main__": 
 
     # TODO: fix detection not running propertly on rpi when first detection has none people
+    # TODO: WHAT THE FUCK, HOW DOES THE FRAME SHAPE CHANGE MID RUN??? WHERE??? FIX NEEDED --------------------------------------
     
     vCap = Cam.vCap(0)
     
@@ -348,6 +359,7 @@ if __name__ == "__main__":
     while True:
         capture_t = time.time()
         frame = vCap.read()
+        
         draw_frame = frame.copy()
 
         if iteration % 300 == 0:
