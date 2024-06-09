@@ -369,9 +369,9 @@ if __name__ == "__main__":
 
         if iteration%10 == 0: closest_enemy = tracker.find_closest_enemy(["Unknown"])
 
-        if servo_loaded and closest_enemy is not None and closest_enemy.center_of_mass != [-1, -1]:
-
-            controller.aim(tracker.crosshair_pos, closest_enemy.center_of_mass, time.time()-capture_t)
+        if closest_enemy is not None and closest_enemy.center_of_mass != [-1, -1]:
+            if servo_loaded:
+                controller.aim(tracker.crosshair_pos, closest_enemy.center_of_mass, time.time()-capture_t)
 
             cv.line(draw_frame, tracker.crosshair_pos, closest_enemy.center_of_mass, (255, 0, 255), 1)
 
