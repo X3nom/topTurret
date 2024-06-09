@@ -38,6 +38,7 @@ class TeamDetector():
 
     def detect_team(self, img):
         MIN_SIZE_TO_DETECTION_SIZE = 1/100
+        
         hsv_img = cv.cvtColor(img,cv.COLOR_BGR2HSV)
         total_size = img.shape[0] * img.shape[1] # used for armband size to detection size ratio
 
