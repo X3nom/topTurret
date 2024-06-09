@@ -137,18 +137,19 @@ class Servo360(PWM):
     self.controllThread.start()
 
 
-  def rotateDeg(self, degrees):
-    self.angleQ.put(degrees)
+  def rotateDeg(self, degrees, speed=0.1):
+    if self.rotating: return # maybe not a good idea, may need to be removed in future
+    self.angleQ.put((degrees, speed))
 
 
-  def rotateDeg_compensated(self, degrees, capture_time):
+  def rotateDeg_compensated(self, degrees, capture_time, speed=0.1):
     if self.rotating or (not self.rotating and capture_time < self.rotation_stop_time):
       degrees -= self.current_rotation
 
-      self.rotateDeg(degrees)
+      self.rotateDeg(degrees, speed)
 
     else:
-      self.rotateDeg(degrees)
+      self.rotateDeg(degrees, speed)
 
   
 
@@ -175,15 +176,17 @@ class Servo360(PWM):
     last_calibration_time = time.time()
 
     self.current_rotation = 0
+    speed = 0.1
 
     last_time = time.time()
 
     while True:
       if self.rotating:
         try:
-          raise #TODO: REMOVE
-          angle = self.angleQ.get_nowait()
-          self.current_rotation = 0
+          # raise #TODO: REMOVE
+          self.angleQ.get_nowait() # clearing the queue
+          # angle = self.angleQ.get_nowait()
+          # self.current_rotation = 0
         except: pass
 
       else:
@@ -192,7 +195,7 @@ class Servo360(PWM):
           mpu.zeroGyro() # recalibrate after 1 minute
           last_calibration_time = time.time()
 
-        angle = self.angleQ.get()
+        angle, speed = self.angleQ.get()
 
         self.current_rotation = 0
         self.rotating = True
@@ -214,8 +217,8 @@ class Servo360(PWM):
 
 
       elif self.current_rotation < angle:
-        self.setVal(-0.25)
+        self.setVal(-speed)
 
       else:
-        self.setVal(0.25)
+        self.setVal(speed)
 

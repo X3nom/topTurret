@@ -116,6 +116,8 @@ def find_closest_enemy(enemies,crosshair_coor):
 def attack_enemy(servo_controller, last_frame_time, enemy, crosshair_coor):
     KILL_DISTANCE = 0.5 # how close to center to shoot (portion of detection)
 
+    #TODO: fix turret pointing down
+
     x1,y1,x2,y2,Id = enemy
     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
 
@@ -123,7 +125,7 @@ def attack_enemy(servo_controller, last_frame_time, enemy, crosshair_coor):
 
     dist = np.sqrt(abs(enemy_center[0]-crosshair_coor[0])**2+abs(enemy_center[1]-crosshair_coor[1])**2)
 
-
+    if servo_controller is None: return
     if dist <= abs(x1-x2)*KILL_DISTANCE and dist <= abs(y1-y2)*KILL_DISTANCE: # target in acceptable range to shoot
         # servo_controller.shoot()
         print("\033[33mSHOOT!\033[0m")
@@ -188,6 +190,7 @@ ids = Ids(teams,colorless_playing)
 
 try:
     servo_controller = servoController_external.Controller(cap_size, 0, 1, 2)
+    servo_controller.yServo.setVal(-0.5)
 except:
     print("ERROR: servo controller could not be loaded, running without servos!!")
     servo_controller = None

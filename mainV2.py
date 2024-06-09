@@ -336,7 +336,6 @@ def movement_vector(cor1, cor2):
 if __name__ == "__main__": 
 
     # TODO: fix detection not running propertly on rpi when first detection has none people
-    # TODO: WHAT THE FUCK, HOW DOES THE FRAME SHAPE CHANGE MID RUN??? WHERE??? FIX NEEDED --------------------------------------
     
     vCap = Cam.vCap(0)
     
@@ -351,7 +350,7 @@ if __name__ == "__main__":
 
     if servo_loaded:
         controller = servoController.Controller(frame.shape, 0, 1, 2)
-        controller.yServo.setVal(0)
+        controller.yServo.setVal(-0.5)
 
 
     # MAIN LOOP ------------
@@ -362,16 +361,16 @@ if __name__ == "__main__":
         
         draw_frame = frame.copy()
 
-        if iteration % 300 == 0:
+        if iteration % 100 == 0:
             tracker.find_people(frame)
             tracker.update_lk_features(frame, force_update=True)
 
-        if iteration %50 == 0:
+        if iteration %20 == 0:
             tracker.cleanup_outliers()
 
             tracker.update_boxes()
 
-        tracker.update_lk_features(frame)
+        # tracker.update_lk_features(frame)
 
         tracker.run_lk(frame, draw_frame)
         
