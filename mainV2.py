@@ -339,7 +339,9 @@ if __name__ == "__main__":
     # teams_config.
     
 
-    if servo_loaded: controller = servoController.Controller(frame.shape, 0, 1, 2)
+    if servo_loaded:
+        controller = servoController.Controller(frame.shape, 0, 1, 2)
+        controller.yServo.setVal(0)
 
 
     # MAIN LOOP ------------
