@@ -121,7 +121,7 @@ def attack_enemy(servo_controller, last_frame_time, enemy, crosshair_coor):
     x1,y1,x2,y2,Id = enemy
     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
 
-    enemy_center = [round(x1+abs(x1-x2)/2),round(y1+abs(y1-y2)/2)]
+    enemy_center = [round(x1+abs(x1-x2)/2),round(y1+abs(y1-y2)/4)] # center not in center bc servo is retarded
 
     dist = np.sqrt(abs(enemy_center[0]-crosshair_coor[0])**2+abs(enemy_center[1]-crosshair_coor[1])**2)
 

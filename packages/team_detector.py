@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 import sys
-from rpiControll import Cam #TODO: RM
+# from rpiControll import Cam #TODO: RM
 
 
 class TeamDetector():
@@ -37,10 +37,14 @@ class TeamDetector():
 
 
     def detect_team(self, img):
-        MIN_SIZE_TO_DETECTION_SIZE = 1/100
-        
+        MIN_SIZE_TO_DETECTION_SIZE = 1/1000
+        MAX_SIZE_TO_DETECTION_SIZE = 1/1
+
         hsv_img = cv.cvtColor(img,cv.COLOR_BGR2HSV)
-        total_size = img.shape[0] * img.shape[1] # used for armband size to detection size ratio
+        total_size = img.size # used for armband size to detection size ratio
+
+        best_team_name = "Unknown"
+        best_team_size = 0
 
         for team in self.teams:
             # get color in range
@@ -54,41 +58,9 @@ class TeamDetector():
             # find blobs
             keypoints = self.blob_detector.detect(mask)
 
-            for kp in keypoints: #filter out god kp
-
-
-
-
-
-
-
-cap = Cam.vCap(0)
-persistant = np.zeros([cap.size[0], cap.size[1], 3], np.uint8)
-while True:
-    frame = cap.read()
-    
-    #frame = cv.imread(r"C:\Users\Panchártek Jakub\Downloads\akjfdl;kafsj;ldgh.jpg")
-
-    hsvFrame = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
-
-    mask = cv.inRange(hsvFrame, np.array(colRange[1]), np.array(colRange[0]))
-    #correct for small imperfections
-    mask = cv.GaussianBlur(mask, (9,9), 0)
-    mask[mask!=0] = 255
-
-    #mask = cv.cvtColor(mask, cv.COLOR_GRAY2BGR)
-
-    keypoints = blob_detector.detect(mask)
-
-    frame_out = frame.copy()
-    frame_out = cv.drawKeypoints(frame_out, keypoints, np.array([]), (0,0,255), cv.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-    
-    for kp in keypoints:
-        #print(kp.size)
-        cv.putText(frame_out, str(int(kp.size)), [int(x) for x in kp.pt], cv.FONT_HERSHEY_SIMPLEX, 1, (255,0,255), 2)
-
-    
-    cv.imshow("mask", mask)
-    cv.imshow("frame", frame_out)
-    #cv.imshow("pers", persistant)
-    cv.waitKey(1)
+            for kp in keypoints: #filter out good kp
+                if kp.size/total_size >= MIN_SIZE_TO_DETECTION_SIZE and kp.size/total_size <= MAX_SIZE_TO_DETECTION_SIZE:
+                    if best_team_size < kp.size:
+                        best_team_size = kp.size
+                        best_team_name = team["name"]
+        return best_team_name

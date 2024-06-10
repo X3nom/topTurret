@@ -22,7 +22,7 @@ class Controller():
     # self.serial_controller.init_threaded()
 
     self.xServo = Servo360(xServoPin, self.serial_controller)
-    self.yServo = Servo180(yServoPin, self.serial_controller, [-30,30])
+    self.yServo = Servo180(yServoPin, self.serial_controller, [0,60])
     self.trigger = PWM(triggerPin, self.serial_controller)
 
   
