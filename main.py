@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 from ultralytics import YOLO
 from threading import Thread
-import time
+import time, datetime
 from packages import sort
 from packages.rpiControll import Cam
 from packages import team_json_loader
@@ -87,7 +87,7 @@ class Ids():
 
 
 class Team(): #class containing info about what clolor range of armband is associated to which team name
-    def __init__(self,name,upper_color,lower_color,display_color=(255,0,255)) -> None:
+    def __init__(self,name,upper_color,lower_color,display_color=(255,0,0)) -> None:
         self.name = name #team name
         self.upper_color = upper_color # brightest/highest color shade that is recognized as teams armband (numpy array, color has to be in VHS format)
         self.lower_color = lower_color # darkest/lowest color shade that is recognized as teams armband (numpy array, color has to be in VHS format)
@@ -146,7 +146,8 @@ def attack_enemy(servo_controller, last_frame_time, enemy, crosshair_coor):
 
 # SETUPS
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-run_visual = True
+run_visual = False
+write_video = True
 
 # capture setup ----------------
 
@@ -206,6 +207,9 @@ if cap.mode == 'pc' and not cap.isOpen():
     print("Cannot open camera")
     exit()
 
+if write_video:
+    vid_writer = cv.VideoWriter(f"./run_vid/run_video_{time.strftime('%m-%d-%Y_%H-%M-%S')}.ts", cv.CAP_PROP_FOURCC, 18, cap.size, True)
+
 last_frame_time = time.time()
 
 while True: # Main loop !!!!!!
@@ -215,7 +219,7 @@ while True: # Main loop !!!!!!
     
     detection = model(frame,stream=True) #detect objects in frame trough neural network
 
-    if run_visual: frame_out = np.copy(frame)
+    if run_visual or write_video: frame_out = np.copy(frame)
 
     people = np.empty((0,5))
 
@@ -262,12 +266,13 @@ while True: # Main loop !!!!!!
 
             if person_team.name in enemy_teams:
                 enemies = np.vstack((enemies,res))
+                color = (0,0,255)
             
-            if run_visual:
+            if run_visual or write_video:
                 # graphics for visual validation of data
                 cv.rectangle(frame_out,(x1,y1),(x2,y2),color,2)
                 cv.drawMarker(frame_out,center,color,cv.MARKER_CROSS,thickness=2)
-                cv.putText(frame_out,person_team.name,np.array([x1+10,y1-10]),cv.FONT_HERSHEY_SIMPLEX,1,color,2,cv.LINE_AA)
+                cv.putText(frame_out,person_team.name,np.array([x1+10,y1+20]),cv.FONT_HERSHEY_SIMPLEX,1,(255, 255, 255),2,cv.LINE_AA)
                 cv.putText(frame_out,str(int(Id)),np.array([x1,y2-10]),cv.FONT_HERSHEY_SIMPLEX,1,color,2,cv.LINE_AA)
 
                 cv.drawMarker(frame_out,screencenter,(255,0,255),cv.MARKER_CROSS,50,2)
@@ -278,7 +283,7 @@ while True: # Main loop !!!!!!
 
         attack_enemy(servo_controller, last_frame_time, closest_enemy, crosshair_coor)
 
-        if run_visual:
+        if run_visual or write_video:
             cv.line(frame_out,closest_center,screencenter,(255,0,255),2,cv.LINE_AA)
             cv.drawMarker(frame_out,closest_center,ids.get_id_from_ids(closest_enemy[4]).team.display_color,cv.MARKER_SQUARE,thickness=2)
 
@@ -287,3 +292,5 @@ while True: # Main loop !!!!!!
     if run_visual:
         cv.imshow("test",frame_out)
         cv.waitKey(1)
+    if write_video:
+        vid_writer.write(frame_out)
