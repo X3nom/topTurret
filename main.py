@@ -6,7 +6,11 @@ import time
 from packages import sort
 from packages.rpiControll import Cam
 from packages import team_json_loader
-from packages.rpiControll import servoController_external
+
+try: from packages.rpiControll import servoController_external
+except: servo_controller = None
+
+from packages import team_detector as TeamDetector
 
 
 class Id_team(): #associate id with team
@@ -142,7 +146,7 @@ def attack_enemy(servo_controller, last_frame_time, enemy, crosshair_coor):
 
 # SETUPS
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-run_visual = False
+run_visual = True
 
 # capture setup ----------------
 
@@ -182,6 +186,8 @@ enemy_teams = team_config.teams_dict["enemy"]
 
 
 ids = Ids(teams,colorless_playing)
+
+team_detector = TeamDetector.TeamDetector([*team_config.get_enemy(), *team_config.get_friendly()])
 
 # teams setup ========
 # servo setup ---------
@@ -236,6 +242,7 @@ while True: # Main loop !!!!!!
 
         if len(person) > 0 and all(i > -1 for i in [x1,y1,x2,y2]): #check if cordinates of person are valid, othervise empty selections or negative cordinates can cause openCV error
             #find color matches with defined teams
+            '''
             hsv_person = cv.cvtColor(person,cv.COLOR_BGR2HSV)
             mask_sums = []
             for team in teams:
@@ -245,6 +252,10 @@ while True: # Main loop !!!!!!
                 best_team_match = teams[mask_sums.index(max(mask_sums))]
             else: #not matched with any team
                 best_team_match = teams[0]
+            '''
+            best_team_match_name = team_detector.detect_team(person)
+            best_team_match = list(filter(lambda x: x.name == best_team_match_name, teams))[0]
+
 
             person_team = ids.check_id(Id,best_team_match)
             color = person_team.display_color

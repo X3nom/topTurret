@@ -30,8 +30,8 @@ blob_params.minInertiaRatio = 0.01
 blob_detector = cv.SimpleBlobDetector_create(blob_params)
 
 
-colRange = [[69,255,255],
-            [0,94,0]]
+colRange = [[12, 22, 179],
+            [55, 217, 255]]
 
 cap = Cam.vCap(0)
 persistant = np.zeros([cap.size[0], cap.size[1], 3], np.uint8)

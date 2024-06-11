@@ -11,7 +11,7 @@ def json_out(x):
     global colRange, team_name
     if x == 1:
         cv.setTrackbarPos("json_out", "image", 0)
-        json_string = "{\n\"name\": \""+ team_name +"\",\n\"upper\": " + str(colRange[0]) + ",\n\"lower\": " + str(colRange[1]) + "\n},"
+        json_string = "{\n    \"name\": \""+ team_name +"\",\n    \"upper\": " + str(colRange[1]) + ",\n    \"lower\": " + str(colRange[0]) + "\n},"
         print(json_string)
 
 def onClick(event,x,y,flags,param):
@@ -64,15 +64,15 @@ while True:
 
     hsvFrame = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
 
-    hsvFrame_equ = hsvFrame.copy()
-    hsvFrame_equ[:, :, 2] = cv.equalizeHist(hsvFrame_equ[:, :, 2]) #EQUALIZE
+    # hsvFrame_equ = hsvFrame.copy()
+    # hsvFrame_equ[:, :, 2] = cv.equalizeHist(hsvFrame_equ[:, :, 2]) #EQUALIZE
 
-    equalised_rgb = cv.cvtColor(hsvFrame_equ, cv.COLOR_HSV2BGR)
+    # equalised_rgb = cv.cvtColor(hsvFrame_equ, cv.COLOR_HSV2BGR)
     
     mask = cv.inRange(hsvFrame, np.array(colRange[0]), np.array(colRange[1]))
     invMask = cv.bitwise_not(mask)
 
-    outFrame = cv.bitwise_and(equalised_rgb, frame, mask=mask)
+    outFrame = cv.bitwise_and(frame, frame, mask=mask)
     
     underlay = np.zeros(frame.shape)
     underlay[:] = (0,0,255)
