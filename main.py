@@ -116,8 +116,6 @@ def find_closest_enemy(enemies,crosshair_coor):
 def attack_enemy(servo_controller, last_frame_time, enemy, crosshair_coor):
     KILL_DISTANCE = 0.5 # how close to center to shoot (portion of detection)
 
-    #TODO: fix turret pointing down
-
     x1,y1,x2,y2,Id = enemy
     x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
 
