@@ -9,3 +9,5 @@
 
 ### troubleshooting commands
 - error:`ImportError: cannot import name 'ImageTk' from 'PIL'` run:`sudo apt-get install python3-pil python3-pil.imagetk`
+
+- if running vith video writing, use `ffmpeg -framerate 4 -i %d.jpg -c:v libx264 -pix_fmt yuv420p output.ts` to combine frames into video

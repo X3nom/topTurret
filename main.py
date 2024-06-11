@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 from ultralytics import YOLO
 from threading import Thread
-import time, datetime
+import time, datetime, os
 from packages import sort
 from packages.rpiControll import Cam
 from packages import team_json_loader
@@ -208,10 +208,15 @@ if cap.mode == 'pc' and not cap.isOpen():
     exit()
 
 if write_video:
-    vid_writer = cv.VideoWriter(f"./run_vid/run_video_{time.strftime('%m-%d-%Y_%H-%M-%S')}.ts", cv.CAP_PROP_FOURCC, 18, cap.size, True)
+    frames_dir = f"./run_vid/run_video_frames_{time.strftime('%m-%d-%Y_%H-%M-%S')}/"
+
+    os.makedirs(frames_dir, exist_ok=True)
+    # vid_writer = cv.VideoWriter(f"run_vid/run_video_{time.strftime('%m-%d-%Y_%H-%M-%S')}.ts", cv.CAP_PROP_FOURCC, 18, cap.size, True)
+    # print(vid_writer.isOpened())
 
 last_frame_time = time.time()
 
+frame_num = 0
 while True: # Main loop !!!!!!
     last_frame_time = time.time()
 
@@ -293,4 +298,7 @@ while True: # Main loop !!!!!!
         cv.imshow("test",frame_out)
         cv.waitKey(1)
     if write_video:
-        vid_writer.write(frame_out)
+        cv.imwrite(frames_dir+str(frame_num)+".jpg", frame_out)
+        # vid_writer.write(frame_out)
+
+    frame_num += 1
