@@ -11,8 +11,8 @@ blob_params.filterByColor = False
 
 # Filter by area (value for area here defines the pixel value)
 blob_params.filterByArea = True
-blob_params.minArea = 1000
-blob_params.maxArea = 5000000
+blob_params.minArea = 600
+blob_params.maxArea = 25000
 
 # Filter by circularity
 blob_params.filterByCircularity = False
@@ -42,10 +42,10 @@ while True:
 
     hsvFrame = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
 
-    mask = cv.inRange(hsvFrame, np.array(colRange[1]), np.array(colRange[0]))
+    mask = cv.inRange(hsvFrame, np.array(colRange[0]), np.array(colRange[1]))
     #correct for small imperfections
-    mask = cv.GaussianBlur(mask, (9,9), 0)
-    mask[mask!=0] = 255
+    mask = cv.GaussianBlur(mask, (11,11), 0)
+    # mask[mask!=0] = 255
 
     #mask = cv.cvtColor(mask, cv.COLOR_GRAY2BGR)
 
