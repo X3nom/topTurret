@@ -12,8 +12,8 @@
         },
         {
             "name": "yellow",     
-            "upper": [47, 255, 255],
-            "lower": [17, 0, 132]
+            "upper": [27, 255, 255],
+            "lower": [6, 135, 41]
         },
         {
             "name": "any",
@@ -23,6 +23,6 @@
     ],
 
     "friendly":[],
-    "enemy":["blue", "red", "yellow"]
+    "enemy":["yellow"]
 }
 

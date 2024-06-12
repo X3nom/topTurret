@@ -11,7 +11,7 @@ blob_params.filterByColor = False
 
 # Filter by area (value for area here defines the pixel value)
 blob_params.filterByArea = True
-blob_params.minArea = 100
+blob_params.minArea = 1000
 blob_params.maxArea = 5000000
 
 # Filter by circularity
@@ -30,8 +30,8 @@ blob_params.minInertiaRatio = 0.01
 blob_detector = cv.SimpleBlobDetector_create(blob_params)
 
 
-colRange = [[12, 22, 179],
-            [55, 217, 255]]
+colRange = [[6, 135, 41],
+            [27, 255, 255]]
 
 cap = Cam.vCap(0)
 persistant = np.zeros([cap.size[0], cap.size[1], 3], np.uint8)

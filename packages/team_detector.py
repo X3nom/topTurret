@@ -13,7 +13,7 @@ class TeamDetector():
 
         # Filter by area (value for area here defines the pixel value)
         blob_params.filterByArea = True
-        blob_params.minArea = 100
+        blob_params.minArea = 1000
         blob_params.maxArea = 5000000
 
         # Filter by circularity
@@ -37,7 +37,7 @@ class TeamDetector():
 
 
     def detect_team(self, img):
-        MIN_SIZE_TO_DETECTION_SIZE = 1/12000
+        MIN_SIZE_TO_DETECTION_SIZE = 1/15000
         MAX_SIZE_TO_DETECTION_SIZE = 1/1
 
         hsv_img = cv.cvtColor(img,cv.COLOR_BGR2HSV)
@@ -65,10 +65,11 @@ class TeamDetector():
 
 
             for kp in keypoints: #filter out good kp
-                if kp.size/total_size >= MIN_SIZE_TO_DETECTION_SIZE and kp.size/total_size <= MAX_SIZE_TO_DETECTION_SIZE:
-                    if best_team_size < kp.size:
-                        best_team_size = kp.size
-                        best_team_name = team["name"]
+                # if kp.size/total_size >= MIN_SIZE_TO_DETECTION_SIZE and kp.size/total_size <= MAX_SIZE_TO_DETECTION_SIZE:
+                if best_team_size < kp.size:
+                    best_team_size = kp.size
+                    best_team_name = team["name"]
+                    print("band-detection ratio: ",kp.size/total_size)
 
             # cv.imshow("img",frame_out)
             # cv.waitKey(0)
