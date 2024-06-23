@@ -146,8 +146,8 @@ def attack_enemy(servo_controller, last_frame_time, enemy, crosshair_coor):
 
 # SETUPS
 # ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-run_visual = True
-write_video = False
+run_visual = False
+write_video = True
 
 # capture setup ----------------
 
