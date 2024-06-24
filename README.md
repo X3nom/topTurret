@@ -52,8 +52,7 @@ Tracker rozhoduje teamy na základě barevných pásek na ruce. Pokud nelze team
 
 ## diagram fungování
 ![turretDiagramNOBG](https://github.com/X3nom/topTurret/assets/100533068/a26700b2-5d5b-498a-afba-398a7786a85b)
-
-
+![final_flowchart drawio](https://github.com/X3nom/topTurret/assets/100533068/5d4683f4-5822-410c-9ed6-5722fcc6aa7d)
 # milestones
 - [ ] přepočet px -> rad
 - [ ] implementace 360⁰ servo ovládání
