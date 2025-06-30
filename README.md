@@ -1,32 +1,32 @@
 # TopTurret
-Záměr projektu je vytvořit plně autonomní airsoft sentry-turret *(otočná věž s namontovanou airsoftovou replikou zbraně schopná sama bránit perimetr)*. Turreta by měla být schopná detekce lidí a následného rozhodování, zda se jedná o přátelský/nepřátelský team *(zda střílet)*.
+The intention of the project is to create a fully autonomous airsoft sentry-turret *(a rotating turret with a mounted airsoft replica weapon capable of defending a perimeter on its own)*. The turret should be capable of detecting people and then deciding whether it is a friendly/hostile team *(whether to shoot)*.
 
-> projekt v rámci programu https://delta-topgun.cz
+> project under the program DELTA-topgun (https://delta-topgun.cz)
 
-# technologie
+# technology
 ## hardware
 - Raspberry pi 5
-- raspberry pi pico (*ovladani pwm*)
+- raspberry pi pico (*controls pwm*)
 - rpi camera module v3
-- 3 servomotory:
-    - otáčení okolo osy Y (**360° MG996R**)
-    - sklon (**180° MG996R**)
-    - aktivace spouště (**180° MG996R**)
-- gyroskop/akcelerometr (**mpu6050**)
-- napájení (11.1V li-pol baterie)
-    - 11.1V li-pol => step-down na 5V schopný usb pd a proudu 5A => rpi usb-c port / direct power přes 5V a GND piny
-- *(zbraň)*
+- 3 servomotors:
+    - yaw (**360° MG996R**)
+    - pitch (**180° MG996R**)
+    - trigger (**180° MG996R**)
+- gyroscope/accelerometer (**mpu6050**)
+- power supply (11.1V li-pol battery)
+    - 11.1V li-pol => step-down to 5V capable usb pd and 5A current => rpi usb-c port / direct power via 5V and GND pins
+- *(gun)*
 
 ## software
 - os: raspberry pi os (raspbian)
-- python *(main jazyk)*
+- python *(main language)*
 - openCV
 - ultralytics - YOLOv8 (pytorch)
 - picamera2 *<s>libcamera</s>*
 - *<s>gpiozero</s>, <s>RPI.GPIO</s>*
 
-# fungování
-Program je rozdělen do dvou hlavních částí + subčástí (hlavně v podobě python modulů)
+# functioning
+The program is divided into two main parts + subparts (mainly in the form of python modules)
 - controller
     - cameraControll
     - servoControll
@@ -35,30 +35,24 @@ Program je rozdělen do dvou hlavních částí + subčástí (hlavně v podobě
     - person detection
     - "sort"
     - team detection/evaluation
+
 ## Controller
 ### camera Controll
-Stará se o handeling kamery jak pomocí **picamera2** tak i opencv **videoCapture**, umožňuje tím beze změn spouštět stejný kód jak na raspberry pi tak i na PC pro testování.
+Takes care of camera handling both with **picamera2** and **videoCapture**, allowing you to run the same code on both raspberry pi and PC for testing without changes.
+
 ### servoControll
-Dostává od trackeru "movement vector" - vektor udávající požadovaný úhel zbraně (left-right, up-down). Movement vector může být udáván v úhlu nebo pixelech, které jsou následně na úhel přepočítány, může být absolutní nebo relativní k momentálnímu natočení. S každým snímkem přicházejí nové korekce úhlů a controller se jim přizpůsobuje. Operace záleží na typu serva:
-- v případě 180⁰ serva se úhel pouze převede na odpovídající PWM signál.
-- v případě 360⁰ serva je využíván pro správné natočení gyroskop, kontrola natočení se děje paralerně se zbytkem kódu. Během přibližování se správnému úhlu se servo bude zpomalovat pro vyšší přesnost.
+Receives a "movement vector" from the tracker - a vector indicating the desired weapon angle (left-right, up-down). The movement vector can be given in angle or pixels, which are then converted to angle, it can be absolute or relative to the current rotation. With each frame comes new angle corrections and the controller adapts to them. The operation depends on the type of servo:
+- in the case of a 180⁰ servo, the angle is only converted to the corresponding PWM signal.
+- In the case of a 360⁰ servo, the gyroscope is used for the correct rotation, and the rotation control happens in parallel with the rest of the code. While approaching the correct angle, the servo will slow down for higher accuracy.
 
 ## Tracker
-"Primární část", obsahuje Main loop, okolo kterého je zbytek programu postaven. Při každém průchodu main loopu je zachycen snímek z kamery (cameraControll).
+"Primary part", contains the Main loop around which the rest of the program is built. On each pass of the main loop, a snapshot is captured from the camera (cameraControll).
 ### Person detection
-Pomocí YOLOv8 object recognition modelu najde tracker ve snímku všechny lidi (vrátí oblast px kde se člověk nachází).
+Using the YOLOv8 object recognition model, the tracker finds all people in the frame (returns the px area where the person is).
 ### Sort
-Stará se o indexování lidí a pamatování si indexů ze snímku na snímek. Záznamy o detekovaných lidech, kteří nebyli dlouho znovy detekováni jsou po určité době mazány.
+Takes care of indexing people and remembering the indexes from frame to frame. Records of detected people that have not been detected again for a long time are deleted after a certain period of time.
 ### team detection/evaluation
-Tracker rozhoduje teamy na základě barevných pásek na ruce. Pokud nelze team rozlišit, detekovaný člověk je označen jako `unknown`. Detekované teamy se připisují pod index detekovaného člověka a průměrují se. (př.: pokud je člověk s červenou páskou na pár snímcích špatně detekován jako jiný team, je pořád indexovaný jako červený.)
-
-## diagram fungování
+The tracker decides teams based on the colored bands on their hands. If a team cannot be distinguished, the detected person is marked as `unknown`. Detected teams are assigned to the index of the detected person and averaged. (e.g.: if a person with a red band is wrongly detected as another team in a few frames, he is still indexed as red.)
+## Diagram
 ![turretDiagramNOBG](https://github.com/X3nom/topTurret/assets/100533068/a26700b2-5d5b-498a-afba-398a7786a85b)
 ![final_flowchart drawio](https://github.com/X3nom/topTurret/assets/100533068/5d4683f4-5822-410c-9ed6-5722fcc6aa7d)
-# milestones
-- [x] přepočet px -> rad
-- [x] implementace 360⁰ servo ovládání
-- [x] napájení
-    - [x] provizorní ze zdi
-    - [ ] baterie
-- [x] prototyp věžě (pohyblivá na x,y + trigger servo)
