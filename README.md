@@ -1,6 +1,8 @@
 # TopTurret
 Záměr projektu je vytvořit plně autonomní airsoft sentry-turret *(otočná věž s namontovanou airsoftovou replikou zbraně schopná sama bránit perimetr)*. Turreta by měla být schopná detekce lidí a následného rozhodování, zda se jedná o přátelský/nepřátelský team *(zda střílet)*.
 
+> projekt v rámci programu https://delta-topgun.cz
+
 # technologie
 ## hardware
 - Raspberry pi 5
@@ -54,9 +56,9 @@ Tracker rozhoduje teamy na základě barevných pásek na ruce. Pokud nelze team
 ![turretDiagramNOBG](https://github.com/X3nom/topTurret/assets/100533068/a26700b2-5d5b-498a-afba-398a7786a85b)
 ![final_flowchart drawio](https://github.com/X3nom/topTurret/assets/100533068/5d4683f4-5822-410c-9ed6-5722fcc6aa7d)
 # milestones
-- [ ] přepočet px -> rad
-- [ ] implementace 360⁰ servo ovládání
-- [ ] napájení
+- [x] přepočet px -> rad
+- [x] implementace 360⁰ servo ovládání
+- [x] napájení
     - [x] provizorní ze zdi
     - [ ] baterie
-- [ ] prototyp věžě (pohyblivá na x,y + trigger servo)
+- [x] prototyp věžě (pohyblivá na x,y + trigger servo)
