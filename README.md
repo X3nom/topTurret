@@ -1,7 +1,9 @@
 # TopTurret
 The intention of the project is to create a fully autonomous airsoft sentry-turret *(a rotating turret with a mounted airsoft replica weapon capable of defending a perimeter on its own)*. The turret should be capable of detecting people and then deciding whether it is a friendly/hostile team *(whether to shoot)*.
 
-> project under the program DELTA-topgun (https://delta-topgun.cz)
+> project under the program [DELTA-topgun](https://delta-topgun.cz)
+
+> ![original czech readme](./README.cz.md)
 
 # technology
 ## hardware
